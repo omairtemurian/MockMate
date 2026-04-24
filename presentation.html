@@ -430,9 +430,12 @@ slides.forEach((_, i) => {
 const dots = Array.from(dotsEl.querySelectorAll('.dot'))
 
 function goTo(idx) {
+  const next = ((idx % slides.length) + slides.length) % slides.length
+  if (next === cur) return
   slides[cur].classList.remove('active')
   slides[cur].classList.add('out')
-  cur = ((idx % slides.length) + slides.length) % slides.length
+  cur = next
+  slides[cur].classList.remove('out')
   slides[cur].classList.add('active')
   dots.forEach((d, i) => d.classList.toggle('on', i === cur))
   counter.textContent = `${cur + 1} / ${slides.length}`
@@ -483,7 +486,10 @@ function makeParticles(containerId, count, colors) {
 makeParticles('p1', 25, ['#10b981','#34d399','#059669','#6ee7b7'])
 makeParticles('p5', 30, ['#10b981','#a855f7','#3b82f6','#f59e0b','#34d399'])
 
-goTo(0)
+// Init first slide directly — avoids adding 'out' and 'active' simultaneously
+slides[0].classList.add('active')
+dots[0].classList.add('on')
+counter.textContent = `1 / ${slides.length}`
 </script>
 </body>
 </html>
