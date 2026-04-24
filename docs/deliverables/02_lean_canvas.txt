@@ -1,0 +1,45 @@
+================================================================
+MOCKMATE — DELIVERABLE 2: LEAN CANVAS
+================================================================
+
++----------------------+------------------------+----------------------------+
+| PROBLEM              | SOLUTION               | UNIQUE VALUE PROPOSITION   |
+|                      |                        |                            |
+| 1. No affordable     | AI voice interviewer   | The only free, voice-first |
+|    voice mock        | "Alex" tailored to     | mock interview tool that   |
+|    interview tool    | any JD + CV            | adapts to YOUR specific    |
+|                      |                        | job description and scores |
+| 2. Generic Q&A       | 5 custom questions     | your actual spoken answers |
+|    does not match    | -> voice STT answers   |                            |
+|    real interviews   | -> scored debrief      |                            |
+|                      |                        |                            |
+| 3. Human coaches     | PDF export of          |                            |
+|    are too expensive | feedback report        |                            |
++----------------------+------------------------+----------------------------+
+| UNFAIR ADVANTAGE     | KEY METRICS            | CHANNELS                   |
+|                      |                        |                            |
+| Zero-cost STT/TTS    | - Sessions per day     | - GitHub (open source)     |
+| using browser APIs   | - Avg session score    | - LinkedIn / Twitter       |
+| (no Whisper cost,    | - Time-to-debrief      | - Bootcamp communities     |
+| no ElevenLabs cost)  | - Return user rate     | - University career fairs  |
+|                      | - Cost per session     | - Word of mouth            |
++----------------------+------------------------+----------------------------+
+| CUSTOMER SEGMENTS                             | COST STRUCTURE             |
+|                                               |                            |
+| Primary:                                      | Claude Haiku API:          |
+|   Junior/mid devs applying for first or       |   ~$0.002 per session      |
+|   next role                                   |                            |
+|                                               | Render (backend):          |
+| Secondary:                                    |   Free tier                |
+|   Career switchers, bootcamp graduates,       |                            |
+|   international candidates                    | Vercel (frontend):         |
+|                                               |   Free tier                |
+| REVENUE STREAMS                               |                            |
+|                                               | STT + TTS:                 |
+| MVP: Free                                     |   $0 (browser APIs)        |
+| Future: Freemium — unlimited sessions,        |                            |
+|         team plans, company branding          | Total infra cost at MVP:   |
+|                                               |   ~$0/month                |
++-----------------------------------------------+----------------------------+
+
+================================================================

@@ -1,0 +1,83 @@
+================================================================
+MOCKMATE — DELIVERABLE 6: SOLO DEFINITION OF DONE (DoD)
+================================================================
+
+My personal checklist for what "Finished" looks like.
+
+----------------------------------------------------------------
+BASELINE REQUIREMENTS (from project brief)
+----------------------------------------------------------------
+[x] Uses an LLM / AI model (Claude Haiku via OpenRouter)
+[x] Solves a real-world problem with a clear, justified user need
+[x] Has a working frontend and backend
+[x] Runnable locally with clear setup instructions (README.md)
+[x] Explains and justifies why the problem is solvable by AI/LLM
+
+----------------------------------------------------------------
+CORE FEATURE: INTERVIEW FLOW
+----------------------------------------------------------------
+[x] User can paste any job description and generate 5 tailored
+    interview questions
+[x] Questions adapt to difficulty level: Junior / Mid / Senior
+[x] Questions adapt to interview type:
+      Full / Behavioral / Technical / Screening
+[x] AI interviewer "Alex" speaks every question aloud (TTS)
+[x] User can answer by voice using push-to-talk
+    (hold SPACE or on-screen button)
+[x] Short answers (under 20 words) trigger a follow-up prompt
+    before moving to the next question
+[x] Interview ends with a warm closing from Alex
+
+----------------------------------------------------------------
+PERSONALISATION
+----------------------------------------------------------------
+[x] Optional CV upload (PDF, DOCX, TXT) personalises questions
+    to the candidate's actual experience
+[x] Optional company name tailors questions to company culture,
+    values, or known tech stack
+[x] Candidate name extracted from CV and used in greeting
+
+----------------------------------------------------------------
+DEBRIEF & FEEDBACK
+----------------------------------------------------------------
+[x] Final debrief scores each answer across 3 dimensions (1-10):
+      - Relevance to question
+      - Use of specific examples
+      - Clarity and structure
+[x] Debrief includes per-answer:
+      - Score
+      - 2-sentence summary of what was said
+      - Constructive feedback
+      - One actionable improvement tip
+      - Ideal answer example (what a 9/10 looks like)
+[x] Overall score (average across all answers)
+[x] 3-sentence overall summary
+[x] Top strength and top improvement area highlighted
+[x] PDF export of the full debrief report
+
+----------------------------------------------------------------
+ADDITIONAL FEATURES
+----------------------------------------------------------------
+[x] Question Bank mode — practice by category without a JD
+    (Behavioral, System Design, React, SQL, Leadership, etc.)
+[x] Retry modal if speech recognition fails
+[x] History trimming (last 6 messages only) to control API cost
+
+----------------------------------------------------------------
+QUALITY & COST
+----------------------------------------------------------------
+[x] Entire session costs less than $0.01 in API fees
+[x] Works in Chrome without installation (browser APIs used)
+[x] No user data stored — all session data is in-memory only
+[x] No API keys exposed to the frontend
+
+----------------------------------------------------------------
+NOT IN SCOPE (v1)
+----------------------------------------------------------------
+[ ] User accounts or persistent session history
+[ ] Safari / Firefox support (Web Speech API is Chrome-only)
+[ ] Real-time audio waveform visualisation
+[ ] Multi-language support
+[ ] Company-specific question databases
+
+================================================================

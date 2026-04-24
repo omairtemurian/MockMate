@@ -1,0 +1,56 @@
+================================================================
+MOCKMATE — DELIVERABLE 1: PROBLEM STATEMENT
+================================================================
+
+Problem Title:
+    AI-Powered Interview Practice Coach
+
+----------------------------------------------------------------
+Context / Background
+----------------------------------------------------------------
+Job seekers preparing for interviews have two realistic options:
+pay a career coach ($100–300/hr), or ask a friend to run a mock
+session — which is awkward, inconsistent, and rarely available
+on demand. Online prep tools (LeetCode, Glassdoor Q&A, ChatGPT
+prompts) give static content but no real conversational practice.
+
+----------------------------------------------------------------
+The Problem
+----------------------------------------------------------------
+There is no low-cost, voice-driven tool that simulates a real
+interview conversation — questions tailored to a specific job
+description, spoken aloud by an AI, with the candidate answering
+by voice — and then delivers scored, actionable feedback.
+
+----------------------------------------------------------------
+Evidence / Data
+----------------------------------------------------------------
+- ~75% of job seekers report that lack of realistic practice is
+  their #1 reason for underperforming in interviews
+  (LinkedIn Talent Trends, 2023)
+- The global interview prep market is valued at $2.4B and growing
+  8% YoY, yet dominated by expensive human coaches
+- Existing AI tools (ChatGPT, Gemini) require users to type
+  answers — no voice, no real interview simulation
+
+----------------------------------------------------------------
+Impact
+----------------------------------------------------------------
+Primarily affects:
+- Junior and mid-level candidates applying for their first or
+  next role
+- Career switchers and bootcamp graduates
+- International candidates who face language and culture gaps
+
+Secondary impact: hiring managers receive less-prepared
+candidates, increasing time-to-hire and cost per hire.
+
+----------------------------------------------------------------
+Objectives / Goal
+----------------------------------------------------------------
+A user can complete a realistic, voice-based mock interview
+tailored to any job description, and receive a fully scored
+debrief with per-answer feedback — all in under 15 minutes,
+at near-zero cost (~$0.001–0.003 per session).
+
+================================================================
