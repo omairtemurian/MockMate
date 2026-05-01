@@ -17,7 +17,7 @@ Updated: 2026-05-01
 - [x] CV/Resume upload (PDF, DOCX, TXT) for personalized questions
 - [x] Difficulty levels: Junior / Mid / Senior
 - [x] Interview types: Full, Behavioral, Technical, Screening
-- [x] Question bank mode (12 categories including System Design, React, SQL, Leadership)
+- [x] Question bank mode (12 categories including System Design, React, Leadership)
 - [x] Company name context for tailored questions
 - [x] Real-time speech analytics (WPM, filler word count, STAR framework detection)
 - [x] PDF export of debrief results
