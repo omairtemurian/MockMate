@@ -4,6 +4,48 @@ Practice job interviews with an AI voice interviewer. Paste a job description, a
 
 **Live Demo:** https://mockmate-1-hmpj.onrender.com/
 
+## How It Works
+
+```mermaid
+flowchart TD
+    A([User opens MockMate]) --> B[Landing Page]
+
+    B --> C{Input method}
+    C --> D[Paste Job Description]
+    C --> E[Pick a Template]
+    C --> F[Question Bank category]
+
+    D & E & F --> G[Optional: Upload CV / set difficulty / company name]
+    G --> H[Click Start Interview]
+
+    H --> I[POST /parse-jd\nBackend generates 5 questions\nvia Claude Haiku]
+
+    I --> J[Interview Page\nAlex speaks Question 1 via TTS]
+
+    J --> K[User holds push-to-talk\nand answers by voice]
+    K --> L[STT captures transcript]
+    L --> M[POST /respond\nClaude decides: follow-up or next question]
+
+    M --> N{Answer complete?}
+    N -- No --> O[Alex asks follow-up]
+    O --> K
+    N -- Yes --> P{More questions?}
+    P -- Yes --> Q[Alex speaks next question]
+    Q --> K
+    P -- No --> R[POST /debrief\nClaude scores all answers]
+
+    R --> S[Debrief Page]
+    S --> T[Per-answer scores\nfeedback + tips]
+    S --> U[Speech analytics\nWPM · fillers · STAR]
+    S --> V[Overall score + summary]
+
+    V --> W[Save session to localStorage]
+    W --> X{User choice}
+    X --> Y[Export PDF]
+    X --> Z[Retry interview]
+    X --> AA[Back to Landing\nview progress chart]
+```
+
 ## What It Does
 
 1. User pastes a job description (or picks a preset template / question bank category)
