@@ -285,7 +285,7 @@ function ShareCard({ score, role, difficulty, strength, date, cardRef }) {
   )
 }
 
-export default function Debrief({ qaPairs, role, difficulty, duration, onRetry }) {
+export default function Debrief({ qaPairs, role, difficulty, duration, recording, onRetry }) {
   const [debrief,   setDebrief]   = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
@@ -435,6 +435,34 @@ export default function Debrief({ qaPairs, role, difficulty, duration, onRetry }
 
         {/* Speech overview */}
         <OverallSpeechSummary qaPairs={qaPairs} sessionDuration={duration} />
+
+        {/* Interview recording replay */}
+        {recording && (
+          <div className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up">
+            <div>
+              <p className="text-white font-bold text-lg">🎥 Interview Recording</p>
+              <p className="text-slate-500 text-sm mt-1">
+                Review your webcam recording from this interview session.
+              </p>
+            </div>
+
+            {/* The recording is stored as a temporary browser object URL.
+                It is available during the current session and can be downloaded by the user. */}
+            <video
+              src={recording}
+              controls
+              className="w-full rounded-2xl border border-slate-700/50 bg-black"
+            />
+
+            <a
+              href={recording}
+              download={`MockMate-recording-${new Date().toISOString().slice(0,10)}.webm`}
+              className="inline-flex items-center justify-center gap-2 glass-light border border-slate-700/50 hover:border-emerald-500/40 text-slate-300 hover:text-emerald-400 font-semibold px-5 py-3 rounded-2xl transition-all"
+            >
+              ⬇️ Download Recording
+            </a>
+          </div>
+        )}
 
         {/* Chart */}
         <AnswerLengthChart answers={debrief.answers} />
