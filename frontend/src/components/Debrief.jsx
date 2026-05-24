@@ -285,7 +285,6 @@ function ShareCard({ score, role, difficulty, strength, date, cardRef }) {
   )
 }
 
-export default function Debrief({ qaPairs, role, difficulty, duration, recording, onRetry }) {
 function BodyLanguageCard({ metrics }) {
   if (!metrics || metrics.samplesCount < 30) return null
 
@@ -498,10 +497,6 @@ export default function Debrief({ qaPairs, role, difficulty, duration, faceMetri
               </p>
             </div>
 
-            {/* The recording is stored as a temporary browser object URL.
-                It is available during the current session and can be downloaded by the user. */}
-              <p className="text-slate-500 text-sm mt-1">Review your webcam recording from this interview session.</p>
-            </div>
             <video
               src={recording}
               controls
