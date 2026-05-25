@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 
-export function useSTT({ onFinalTranscript }) {
+export function useSTT({ onFinalTranscript, language = 'en-US' }) {
   const recognitionRef = useRef(null)
   const [interimTranscript, setInterimTranscript] = useState('')
   const [isListening, setIsListening] = useState(false)
@@ -17,7 +17,7 @@ export function useSTT({ onFinalTranscript }) {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
-    recognition.lang = 'en-US'
+    recognition.lang = language
     recognition.interimResults = true
     recognition.continuous = true
     recognitionRef.current = recognition
@@ -68,7 +68,7 @@ export function useSTT({ onFinalTranscript }) {
     } catch (e) {
       console.error('Could not start recognition:', e)
     }
-  }, [isSupported, onFinalTranscript])
+  }, [isSupported, onFinalTranscript, language])
 
   const stop = useCallback(() => {
     if (recognitionRef.current) {

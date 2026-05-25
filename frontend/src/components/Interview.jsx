@@ -186,7 +186,7 @@ function fmtTime(s) {
 }
 
 export default function Interview({ sessionData, onComplete }) {
-  const { role, questions, intro_message, cv_summary, difficulty = 'Mid' } = sessionData
+  const { role, questions, intro_message, cv_summary, difficulty = 'Mid', language = 'en-US' } = sessionData
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [history,         setHistory]        = useState([])
@@ -314,6 +314,7 @@ export default function Interview({ sessionData, onComplete }) {
 
   const { start, stop, isListening, interimTranscript, isSupported: sttSupported } = useSTT({
     onFinalTranscript: handleFinalTranscript,
+    language,
   })
 
   useEffect(() => {
