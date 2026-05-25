@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { wpmColor, durationLabel } from '../utils/speechAnalytics'
 import { saveSession } from '../utils/history'
+import { saveSessionToDB } from '../utils/api'
 import RetryModal from './RetryModal'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
@@ -285,7 +286,7 @@ function ShareCard({ score, role, difficulty, strength, date, cardRef }) {
   )
 }
 
-export default function Debrief({ qaPairs, role, difficulty, duration, onRetry }) {
+export default function Debrief({ qaPairs, role, difficulty, interviewType, duration, onRetry }) {
   const [debrief,   setDebrief]   = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [error,     setError]     = useState('')
@@ -317,6 +318,8 @@ export default function Debrief({ qaPairs, role, difficulty, duration, onRetry }
           answerCount: data.answers?.length || qaPairs.length,
           duration: duration || 0,
         })
+        // Also persist to PostgreSQL (fire-and-forget — won't block the UI)
+        saveSessionToDB(data, qaPairs, role, difficulty, interviewType, duration)
       } catch {
         setError('Something went wrong generating your feedback. Please try again.')
       } finally {

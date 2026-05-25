@@ -5,7 +5,7 @@ import re
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Any
 from openai import OpenAI
 from dotenv import load_dotenv
 from prompts import (
@@ -16,10 +16,16 @@ from prompts import (
     INTERVIEW_TYPE_PROMPTS,
     QUESTION_BANK_PROMPT,
 )
+from database import init_db, upsert_user, save_session, get_sessions, get_session_detail
 
 load_dotenv()
 
 app = FastAPI(title="MockMate API")
+
+
+@app.on_event("startup")
+def startup():
+    init_db()
 
 app.add_middleware(
     CORSMiddleware,
@@ -352,15 +358,96 @@ async def debrief(req: DebriefRequest):
     ]
 
     try:
-        # More tokens to accommodate ideal_answer fields
-        raw = chat(messages, max_tokens=1800)
+        # Needs enough tokens for 5 answers × (summary + feedback + tip + ideal_answer)
+        raw = chat(messages, max_tokens=4000)
         data = extract_json(raw)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(f"[debrief] JSON parse error: {e}")
+        print(f"[debrief] Raw AI response was:\n{raw}")
         raise HTTPException(status_code=500, detail="Failed to parse debrief response as JSON")
     except Exception as e:
+        print(f"[debrief] Unexpected error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
     return data
+
+
+# ── Session / Dashboard endpoints ─────────────────────────────────────────────
+
+class AnswerIn(BaseModel):
+    question_index: int
+    question:       str
+    answer:         str
+    score:          Optional[float] = None
+    feedback:       Optional[str]   = None
+    tip:            Optional[str]   = None
+    ideal_answer:   Optional[str]   = None
+    analytics:      Optional[Any]   = None   # speech analytics dict from frontend
+
+
+class SaveSessionRequest(BaseModel):
+    user_id:          str
+    role:             Optional[str]   = "the position"
+    difficulty:       Optional[str]   = "Mid"
+    interview_type:   Optional[str]   = "full"
+    overall_score:    Optional[float] = None
+    duration_seconds: Optional[int]   = 0
+    summary:          Optional[str]   = None
+    top_strength:     Optional[str]   = None
+    top_improvement:  Optional[str]   = None
+    answers:          List[AnswerIn]  = []
+
+
+@app.post("/sessions", status_code=201)
+def create_session(req: SaveSessionRequest):
+    """Save a completed interview session + answers to PostgreSQL."""
+    try:
+        upsert_user(req.user_id)
+        session_id = save_session(
+            user_id          = req.user_id,
+            role             = req.role,
+            difficulty       = req.difficulty,
+            interview_type   = req.interview_type,
+            overall_score    = req.overall_score,
+            duration_seconds = req.duration_seconds,
+            summary          = req.summary,
+            top_strength     = req.top_strength,
+            top_improvement  = req.top_improvement,
+            answers          = [a.model_dump() for a in req.answers],
+        )
+        return {"session_id": session_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sessions")
+def list_sessions(user_id: str):
+    """Return all sessions for a user (no answer detail — for dashboard list)."""
+    try:
+        sessions = get_sessions(user_id)
+        # Make datetime objects JSON-serialisable
+        for s in sessions:
+            if s.get("created_at"):
+                s["created_at"] = s["created_at"].isoformat()
+        return {"sessions": sessions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sessions/{session_id}")
+def session_detail(session_id: int, user_id: str):
+    """Return one session with all its answers."""
+    try:
+        data = get_session_detail(session_id, user_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if data.get("created_at"):
+            data["created_at"] = data["created_at"].isoformat()
+        return data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/health")

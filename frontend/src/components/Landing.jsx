@@ -255,7 +255,7 @@ export default function Landing({ onStart }) {
         }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Failed to parse JD') }
-      onStart({ ...(await res.json()), difficulty })
+      onStart({ ...(await res.json()), difficulty, interview_type: interviewType })
     } catch (err) {
       setError(err.message || 'Something went wrong.')
     } finally {
@@ -273,7 +273,7 @@ export default function Landing({ onStart }) {
         body: JSON.stringify({ category: selectedCategory, difficulty }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Failed to load questions') }
-      onStart({ ...(await res.json()), difficulty })
+      onStart({ ...(await res.json()), difficulty, interview_type: 'practice' })
     } catch (err) {
       setPracticeError(err.message || 'Something went wrong.')
     } finally {
