@@ -223,7 +223,7 @@ function fmtTime(s) {
 }
 
 export default function Interview({ sessionData, onComplete }) {
-  const { role, questions, intro_message, cv_summary, difficulty = 'Mid' } = sessionData
+  const { role, questions, intro_message, cv_summary, difficulty = 'Mid', language = 'en-US' } = sessionData
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [history,         setHistory]        = useState([])
@@ -294,7 +294,7 @@ export default function Interview({ sessionData, onComplete }) {
     }
   }
 
-  const { speak, isSupported: ttsSupported } = useTTS()
+  const { speak, isSupported: ttsSupported } = useTTS({ language })
 
   const handleFinalTranscript = useCallback(async (transcript) => {
     if (!transcript.trim()) return
@@ -319,11 +319,13 @@ export default function Interview({ sessionData, onComplete }) {
         body: JSON.stringify({
           history: newHistory,
           user_answer: transcript,
-          current_question_index: idx,
-          questions, role,
-          cv_summary: cv_summary || null,
+          current_question_index: currentQuestionIndex,
+          questions,
+          role,
+          cv_summary,
           difficulty,
           allow_followup: !followupGivenRef.current,
+          language,
         }),
       })
       if (!res.ok) throw new Error('Failed to get response')
@@ -347,26 +349,34 @@ export default function Interview({ sessionData, onComplete }) {
       setQaPairs(updatedPairs)
       setStatus('speaking')
       canRecordRef.current = false
-      speak(reply, () => {
-        if (done) {
-          const totalDuration = Math.round((Date.now() - sessionStartRef.current) / 1000)
+      if (done) {
+        const totalDuration = Math.round((Date.now() - sessionStartRef.current) / 1000)
+        let completed = false
+        const complete = () => {
+          if (completed) return
+          completed = true
           stopRecording()
           setTimeout(() => onComplete(updatedPairs, totalDuration, faceMetricsRef.current, recordingUrlRef.current), 800)
-        } else {
+        }
+        const fallbackTimer = setTimeout(complete, 12000)
+        speak(reply, () => { clearTimeout(fallbackTimer); complete() })
+      } else {
+        speak(reply, () => {
           setCurrentQuestionIndex(i => i + 1)
           setStatus('idle')
           canRecordRef.current = true
-        }
-      })
+        })
+      }
     } catch {
       setError('Something went wrong, please try again.')
       setStatus('idle')
       canRecordRef.current = true
     }
-  }, [history, questions, qaPairs, speak, onComplete, role, cv_summary, difficulty])
+  }, [history, questions, qaPairs, speak, onComplete, role, cv_summary, difficulty, language])
 
   const { start, stop, isListening, interimTranscript, isSupported: sttSupported } = useSTT({
     onFinalTranscript: handleFinalTranscript,
+    language,
   })
 
   useEffect(() => {
