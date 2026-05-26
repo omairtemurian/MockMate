@@ -2,7 +2,7 @@ import os
 import io
 import json
 import re
-import requests as http_requests
+import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -403,19 +403,19 @@ async def text_to_speech(request: Request):
         raise HTTPException(status_code=500, detail="ELEVENLABS_API_KEY not configured")
 
     voice_id = "onwK4e9ZLuTAKqWW03F9"  # Daniel — professional male
-    resp = http_requests.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
-        headers={"xi-api-key": api_key, "Content-Type": "application/json"},
-        json={
-            "text": text,
-            "model_id": "eleven_multilingual_v2",
-            "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
-        },
-        timeout=30,
-    )
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            headers={"xi-api-key": api_key, "Content-Type": "application/json"},
+            json={
+                "text": text,
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
+            },
+        )
 
     if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"ElevenLabs error: {resp.text}")
+        raise HTTPException(status_code=502, detail=f"ElevenLabs error {resp.status_code}: {resp.text}")
 
     return Response(content=resp.content, media_type="audio/mpeg")
 

@@ -6,4 +6,4 @@ pydantic
 pdfplumber
 python-docx
 python-multipart
-requests
+httpx
