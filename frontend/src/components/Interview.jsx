@@ -223,7 +223,7 @@ function fmtTime(s) {
 }
 
 export default function Interview({ sessionData, onComplete }) {
-  const { role, questions, intro_message, cv_summary, difficulty = 'Mid' } = sessionData
+  const { role, questions, intro_message, cv_summary, difficulty = 'Mid', language = 'en-US' } = sessionData
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [history,         setHistory]        = useState([])
@@ -294,10 +294,16 @@ export default function Interview({ sessionData, onComplete }) {
     }
   }
 
-  const { speak, isSupported: ttsSupported } = useTTS()
+  const { speak, isSupported: ttsSupported } = useTTS({ language })
 
   const handleFinalTranscript = useCallback(async (transcript) => {
-    if (!transcript.trim()) return
+    if (!transcript.trim()) {
+      // STT ended with no speech (no-speech timeout, space pressed too fast, etc.)
+      // Must reset status so the mic button becomes usable again.
+      setStatus('idle')
+      canRecordRef.current = true
+      return
+    }
     const durationSeconds = recordingStartRef.current ? (Date.now() - recordingStartRef.current) / 1000 : 0
     recordingStartRef.current = null
     const idx       = currentIndexRef.current
@@ -319,11 +325,13 @@ export default function Interview({ sessionData, onComplete }) {
         body: JSON.stringify({
           history: newHistory,
           user_answer: transcript,
-          current_question_index: idx,
-          questions, role,
-          cv_summary: cv_summary || null,
+          current_question_index: currentQuestionIndex,
+          questions,
+          role,
+          cv_summary,
           difficulty,
           allow_followup: !followupGivenRef.current,
+          language,
         }),
       })
       if (!res.ok) throw new Error('Failed to get response')
@@ -338,7 +346,15 @@ export default function Interview({ sessionData, onComplete }) {
         followupGivenRef.current = true
         setStatus('speaking')
         canRecordRef.current = false
-        speak(reply, () => { setStatus('idle'); canRecordRef.current = true })
+        let followupDone = false
+        const followupComplete = () => {
+          if (followupDone) return
+          followupDone = true
+          setStatus('idle')
+          canRecordRef.current = true
+        }
+        const followupFallback = setTimeout(followupComplete, 12000)
+        speak(reply, () => { clearTimeout(followupFallback); followupComplete() })
         return
       }
 
@@ -347,26 +363,39 @@ export default function Interview({ sessionData, onComplete }) {
       setQaPairs(updatedPairs)
       setStatus('speaking')
       canRecordRef.current = false
-      speak(reply, () => {
-        if (done) {
-          const totalDuration = Math.round((Date.now() - sessionStartRef.current) / 1000)
+      if (done) {
+        const totalDuration = Math.round((Date.now() - sessionStartRef.current) / 1000)
+        let completed = false
+        const complete = () => {
+          if (completed) return
+          completed = true
           stopRecording()
           setTimeout(() => onComplete(updatedPairs, totalDuration, faceMetricsRef.current, recordingUrlRef.current), 800)
-        } else {
+        }
+        const fallbackTimer = setTimeout(complete, 12000)
+        speak(reply, () => { clearTimeout(fallbackTimer); complete() })
+      } else {
+        let advanced = false
+        const advance = () => {
+          if (advanced) return
+          advanced = true
           setCurrentQuestionIndex(i => i + 1)
           setStatus('idle')
           canRecordRef.current = true
         }
-      })
+        const advanceFallback = setTimeout(advance, 12000)
+        speak(reply, () => { clearTimeout(advanceFallback); advance() })
+      }
     } catch {
       setError('Something went wrong, please try again.')
       setStatus('idle')
       canRecordRef.current = true
     }
-  }, [history, questions, qaPairs, speak, onComplete, role, cv_summary, difficulty])
+  }, [history, questions, qaPairs, speak, onComplete, role, cv_summary, difficulty, language])
 
   const { start, stop, isListening, interimTranscript, isSupported: sttSupported } = useSTT({
     onFinalTranscript: handleFinalTranscript,
+    language,
   })
 
   useEffect(() => {
@@ -444,7 +473,7 @@ export default function Interview({ sessionData, onComplete }) {
   const progressPct = Math.round((currentQuestionIndex / questions.length) * 100)
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden relative">
       {/* Background orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="animate-orb absolute top-0 right-0 w-72 h-72 rounded-full bg-emerald-500/6 blur-3xl" />

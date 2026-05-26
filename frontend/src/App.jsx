@@ -48,6 +48,7 @@ export default function App() {
           qaPairs={qaPairs}
           role={sessionData?.role || 'the position'}
           difficulty={sessionData?.difficulty || 'Mid'}
+          language={sessionData?.language || 'en-US'}
           duration={duration}
           faceMetrics={faceMetrics}
           recording={recording}

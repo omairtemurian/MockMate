@@ -1,19 +1,25 @@
 import { useCallback, useRef } from 'react'
 
-function pickVoice(voices) {
-  const en = voices.filter((v) => v.lang.startsWith('en'))
-  // Prefer high-quality male voices by name (Chrome/Edge on Windows)
+function pickVoice(voices, language = 'en-US') {
+  const langPrefix = language.split('-')[0]
+
+  const matching = voices.filter((v) => {
+    const normalized = v.lang.replace('_', '-')
+    return normalized === language || normalized.startsWith(langPrefix + '-')
+  })
+
+  // Prefer male voices (David, Mark, James, Daniel, Guy, Fred, Alex)
+  const isMale = (v) => /\b(Male|David|Mark|James|Daniel|Guy|Fred|Alex)\b/i.test(v.name)
+
   return (
-    en.find((v) => /Guy/i.test(v.name))                          ||
-    en.find((v) => /Davis/i.test(v.name))                        ||
-    en.find((v) => /Ryan/i.test(v.name))                         ||
-    en.find((v) => /Liam/i.test(v.name))                         ||
-    en.find((v) => /David/i.test(v.name))                        ||
-    en.find((v) => /Male/i.test(v.name))                         ||
-    en.find((v) => /Google UK English Male/i.test(v.name))       ||
-    en.find((v) => /Natural/i.test(v.name) && !/aria|jenny|zira|sara|monica|samantha/i.test(v.name)) ||
-    en.find((v) => !/aria|jenny|zira|sara|monica|samantha/i.test(v.name)) ||
-    en[0] ||
+    matching.find((v) => isMale(v) && /Natural/i.test(v.name)) ||
+    matching.find((v) => isMale(v) && /Online/i.test(v.name)) ||
+    matching.find((v) => isMale(v) && /Google/i.test(v.name)) ||
+    matching.find((v) => isMale(v)) ||
+    matching.find((v) => /Natural/i.test(v.name)) ||
+    matching.find((v) => /Online/i.test(v.name)) ||
+    matching.find((v) => /Google/i.test(v.name)) ||
+    matching[0] ||
     voices[0]
   )
 }
@@ -23,7 +29,7 @@ function toSentences(text) {
   return chunks.map((s) => s.trim()).filter(Boolean)
 }
 
-export function useTTS() {
+export function useTTS({ language = 'en-US' } = {}) {
   const keepAliveRef = useRef(null)
   const genRef       = useRef(0)
 
@@ -45,7 +51,7 @@ export function useTTS() {
         return
       }
 
-      const voice     = pickVoice(voices)
+      const voice     = pickVoice(voices, language)
       const sentences = toSentences(text)
       let idx         = 0
 
@@ -60,8 +66,9 @@ export function useTTS() {
 
         const utterance = new SpeechSynthesisUtterance(sentences[idx++])
         if (voice) utterance.voice = voice
-        utterance.rate   = 0.88
-        utterance.pitch  = 0.6
+        utterance.lang   = language
+        utterance.rate   = 0.90
+        utterance.pitch  = 1.0
         utterance.volume = 1.0
 
         // Per-utterance flag so Chrome's occasional double-onend is also harmless
@@ -95,7 +102,7 @@ export function useTTS() {
     }
 
     trySpeak(10)
-  }, [])
+  }, [language])
 
   const cancel = useCallback(() => {
     genRef.current += 1

@@ -690,6 +690,7 @@ export default function Debrief({
   qaPairs,
   role,
   difficulty,
+  language = "en-US",
   duration,
   faceMetrics,
   recording,
@@ -700,15 +701,14 @@ export default function Debrief({
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [retryQ, setRetryQ] = useState(null); // { question, originalScore }
+  const [retryQ, setRetryQ] = useState(null);
   const debriefRef = useRef(null);
   const shareCardRef = useRef(null);
 
-  // AI Scoring Module (our custom scoring)
+  // AI Scoring Module (client-side scoring)
   const rawAnswers = Array.isArray(qaPairs)
     ? qaPairs.map((q) => q.answer || "")
     : [];
-
   const scoring = scoreAllAnswers(rawAnswers);
 
   useEffect(() => {
@@ -721,7 +721,7 @@ export default function Debrief({
         const res = await fetch(`${BACKEND_URL}/debrief`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ qa_pairs: cleanPairs, role }),
+          body: JSON.stringify({ qa_pairs: cleanPairs, role, language }),
         });
         if (!res.ok) throw new Error("Failed to get debrief");
         const data = await res.json();
