@@ -8,10 +8,22 @@ function pickVoice(voices, language = 'en-US') {
     return normalized === language || normalized.startsWith(langPrefix + '-')
   })
 
+  // For English prefer high-quality male voices
+  if (langPrefix === 'en') {
+    const en = matching.length ? matching : voices.filter(v => v.lang.startsWith('en'))
+    return (
+      en.find((v) => /Guy/i.test(v.name))    ||
+      en.find((v) => /Davis/i.test(v.name))  ||
+      en.find((v) => /Natural/i.test(v.name)) ||
+      en[0] ||
+      voices[0]
+    )
+  }
+
   return (
     matching.find((v) => /Natural/i.test(v.name)) ||
-    matching.find((v) => /Online/i.test(v.name)) ||
-    matching.find((v) => /Google/i.test(v.name)) ||
+    matching.find((v) => /Online/i.test(v.name))  ||
+    matching.find((v) => /Google/i.test(v.name))  ||
     matching[0] ||
     voices[0]
   )
@@ -59,7 +71,7 @@ export function useTTS({ language = 'en-US' } = {}) {
 
         const utterance = new SpeechSynthesisUtterance(sentences[idx++])
         if (voice) utterance.voice = voice
-        utterance.lang = language
+        utterance.lang   = language
         utterance.rate   = 0.90
         utterance.pitch  = 1.0
         utterance.volume = 1.0
