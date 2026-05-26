@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 
-const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 export function useTTS({ language = 'en-US' } = {}) {
   const audioRef = useRef(null)
