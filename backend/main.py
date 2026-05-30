@@ -35,7 +35,10 @@ app = FastAPI(title="MockMate API")
 
 @app.on_event("startup")
 def startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"⚠️  Database init failed (dashboard disabled): {e}")
 
 app.add_middleware(
     CORSMiddleware,

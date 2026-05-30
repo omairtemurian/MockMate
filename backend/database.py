@@ -21,7 +21,7 @@ def _parse_url(url: str) -> dict:
 
 def get_connection():
     """Return a live psycopg3 connection to the mockmate database."""
-    return psycopg.connect(DATABASE_URL)
+    return psycopg.connect(DATABASE_URL, sslmode="require" if "render.com" in DATABASE_URL else "prefer")
 
 
 # ── Step 1: create the database ────────────────────────────────────────────────
@@ -119,7 +119,10 @@ def create_tables():
 def init_db():
     """Full init: create DB then create tables.  Called on FastAPI startup."""
     print("🔧 Initialising MockMate database...")
-    create_database_if_not_exists()
+    # Skip create-DB step when using a managed cloud database (Render, Supabase, etc.)
+    # — those databases are pre-created; we only need to ensure the tables exist.
+    if DATABASE_URL == "postgresql://postgres:postgres@localhost:5432/mockmate":
+        create_database_if_not_exists()
     create_tables()
     print("🎉 Database ready.")
 
