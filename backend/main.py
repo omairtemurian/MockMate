@@ -1,7 +1,4 @@
 import os
-import io
-import json
-import re
 import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +16,14 @@ from prompts import (
     INTERVIEW_TYPE_PROMPTS,
     QUESTION_BANK_PROMPT,
     language_instruction,
+)
+from helpers import (
+    extract_json,
+    trim_history,
+    trim_to_words,
+    chat,
+    extract_text_from_pdf,
+    extract_text_from_docx,
 )
 from database import init_db, upsert_user, save_session, get_sessions, get_session_detail
 
@@ -105,50 +110,6 @@ class DebriefRequest(BaseModel):
     language: Optional[str] = "en-US"
 
 
-# --- Helpers ---
-
-def extract_json(text: str) -> dict:
-    cleaned = re.sub(r"```(?:json)?", "", text).replace("```", "").strip()
-    return json.loads(cleaned)
-
-
-def trim_history(history: List[Message], max_messages: int = 6) -> List[Message]:
-    return history[-max_messages:]
-
-
-def trim_to_words(text: str, max_words: int) -> str:
-    words = text.split()
-    if len(words) <= max_words:
-        return text
-    return " ".join(words[:max_words]) + "..."
-
-
-def chat(messages: list, max_tokens: int) -> str:
-    response = client.chat.completions.create(
-        model=MODEL,
-        max_tokens=max_tokens,
-        messages=messages,
-    )
-    return response.choices[0].message.content
-
-
-def extract_text_from_pdf(file_bytes: bytes) -> str:
-    import pdfplumber
-    text_parts = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-            t = page.extract_text()
-            if t:
-                text_parts.append(t)
-    return "\n".join(text_parts)
-
-
-def extract_text_from_docx(file_bytes: bytes) -> str:
-    from docx import Document
-    doc = Document(io.BytesIO(file_bytes))
-    return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-
-
 # --- Endpoints ---
 
 @app.post("/extract-cv")
@@ -175,6 +136,31 @@ async def extract_cv(file: UploadFile = File(...)):
 
     trimmed = trim_to_words(raw_text, MAX_CV_WORDS)
     return {"cv_text": trimmed, "word_count": len(trimmed.split())}
+
+
+@app.post("/extract-text")
+async def extract_text(file: UploadFile = File(...)):
+    filename = file.filename.lower()
+    file_bytes = await file.read()
+    try:
+        if filename.endswith(".pdf"):
+            raw_text = extract_text_from_pdf(file_bytes)
+        elif filename.endswith(".docx"):
+            raw_text = extract_text_from_docx(file_bytes)
+        elif filename.endswith(".txt"):
+            raw_text = file_bytes.decode("utf-8", errors="ignore")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+
+    if not raw_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from the file. Try a different format.")
+
+    trimmed = trim_to_words(raw_text, MAX_CV_WORDS)
+    return {"text": trimmed, "word_count": len(trimmed.split())}
 
 
 @app.post("/parse-jd")
@@ -213,10 +199,8 @@ async def parse_jd(req: ParseJDRequest):
     )
 
     try:
-        raw = chat([{"role": "user", "content": prompt}], max_tokens=800)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
         data = extract_json(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse JD response as JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -263,10 +247,8 @@ async def question_bank(req: QuestionBankRequest):
     )
 
     try:
-        raw = chat([{"role": "user", "content": prompt}], max_tokens=800)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
         data = extract_json(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse question bank response as JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -326,7 +308,7 @@ async def respond(req: RespondRequest):
         )
         messages.append({"role": "user", "content": f"[Candidate answer]: {req.user_answer}\n\n[Instruction]: {instruction}"})
         try:
-            reply = chat(messages, max_tokens=80).strip()
+            reply = chat(client, MODEL, messages, max_tokens=80).strip()
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         return {"reply": reply, "done": False, "followup": True}
@@ -346,7 +328,7 @@ async def respond(req: RespondRequest):
     messages.append({"role": "user", "content": f"[Candidate answer]: {req.user_answer}\n\n[Instruction]: {instruction}"})
 
     try:
-        reply = chat(messages, max_tokens=300).strip()
+        reply = chat(client, MODEL, messages, max_tokens=300).strip()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -386,16 +368,9 @@ async def debrief(req: DebriefRequest):
     ]
 
     try:
-        # Needs enough tokens for 5 answers × (summary + feedback + tip + ideal_answer)
-        # Multilingual responses (DE/FR) are ~2x longer — use 4000 for headroom
-        raw = chat(messages, max_tokens=4000)
+        raw = chat(client, MODEL, messages, max_tokens=4000)
         data = extract_json(raw)
-    except json.JSONDecodeError as e:
-        print(f"[debrief] JSON parse error: {e}")
-        print(f"[debrief] Raw AI response was:\n{raw}")
-        raise HTTPException(status_code=500, detail="Failed to parse debrief response as JSON")
     except Exception as e:
-        print(f"[debrief] Unexpected error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
     return data
@@ -413,8 +388,8 @@ async def text_to_speech(request: Request):
         raise HTTPException(status_code=500, detail="ELEVENLABS_API_KEY not configured")
 
     voice_id = "onwK4e9ZLuTAKqWW03F9"  # Daniel — professional male
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
+    async with httpx.AsyncClient(timeout=30) as http:
+        resp = await http.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
             headers={"xi-api-key": api_key, "Content-Type": "application/json"},
             json={
@@ -440,7 +415,7 @@ class AnswerIn(BaseModel):
     feedback:       Optional[str]   = None
     tip:            Optional[str]   = None
     ideal_answer:   Optional[str]   = None
-    analytics:      Optional[Any]   = None   # speech analytics dict from frontend
+    analytics:      Optional[Any]   = None
 
 
 class SaveSessionRequest(BaseModel):
@@ -458,7 +433,6 @@ class SaveSessionRequest(BaseModel):
 
 @app.post("/sessions", status_code=201)
 def create_session(req: SaveSessionRequest):
-    """Save a completed interview session + answers to PostgreSQL."""
     try:
         upsert_user(req.user_id)
         session_id = save_session(
@@ -480,7 +454,6 @@ def create_session(req: SaveSessionRequest):
 
 @app.get("/sessions")
 def list_sessions(user_id: str):
-    """Return all sessions for a user (no answer detail — for dashboard list)."""
     try:
         sessions = get_sessions(user_id)
         for s in sessions:
@@ -493,7 +466,6 @@ def list_sessions(user_id: str):
 
 @app.get("/sessions/{session_id}")
 def session_detail(session_id: int, user_id: str):
-    """Return one session with all its answers."""
     try:
         data = get_session_detail(session_id, user_id)
         if not data:
