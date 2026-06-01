@@ -7,7 +7,9 @@ import Interview from './components/Interview'
 import Debrief   from './components/Debrief'
 import Dashboard from './components/Dashboard'
 import Sessions  from './components/Sessions'
-import ProModal  from './components/ProModal'
+import ProModal      from './components/ProModal'
+import Settings      from './components/Settings'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function AppInner() {
   const { user, loading } = useAuth()
@@ -59,7 +61,7 @@ function AppInner() {
 
   // Interview and debrief are full-screen — no sidebar
   const fullScreen = view === 'interview' || view === 'debrief'
-  const sidebarViews = ['dashboard', 'sessions', 'landing']
+  const sidebarViews = ['dashboard', 'sessions', 'landing', 'settings']
 
   return (
     <div className="flex min-h-screen bg-slate-950">
@@ -84,6 +86,9 @@ function AppInner() {
         )}
         {view === 'sessions' && (
           <Sessions onNavigate={setView} />
+        )}
+        {view === 'settings' && (
+          <Settings onNavigate={setView} />
         )}
         {view === 'landing' && (
           <Landing onStart={handleStart} />
@@ -111,8 +116,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }

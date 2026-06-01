@@ -34,8 +34,18 @@ load_dotenv()
 app = FastAPI(title="MockMate API")
 
 
+REQUIRED_ENV = ["OPENROUTER_API_KEY", "JWT_SECRET", "DATABASE_URL"]
+OPTIONAL_ENV = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "ELEVENLABS_API_KEY",
+                "API_BASE_URL", "FRONTEND_URL"]
+
 @app.on_event("startup")
 def startup():
+    missing = [k for k in REQUIRED_ENV if not os.getenv(k)]
+    if missing:
+        print(f"⛔  Missing required env vars: {', '.join(missing)}")
+    unset_optional = [k for k in OPTIONAL_ENV if not os.getenv(k)]
+    if unset_optional:
+        print(f"ℹ️   Optional env vars not set: {', '.join(unset_optional)}")
     try:
         init_db()
     except Exception as e:

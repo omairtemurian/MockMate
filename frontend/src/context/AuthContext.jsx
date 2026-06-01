@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
+import { BACKEND_URL } from '../utils/config'
+
 const STORAGE_KEY = 'mockmate_auth'
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 const AuthContext = createContext(null)
 
@@ -47,8 +48,20 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const updateUser = (partial) => {
+    setUser(prev => {
+      const next = { ...prev, ...partial }
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, user: next }))
+      }
+      return next
+    })
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   )

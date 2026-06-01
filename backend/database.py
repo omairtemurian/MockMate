@@ -1,6 +1,7 @@
 import os
 import json
 import psycopg
+from contextlib import contextmanager
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,6 +22,18 @@ def _parse_url(url: str) -> dict:
 
 def get_connection():
     return psycopg.connect(DATABASE_URL, sslmode="require" if "render.com" in DATABASE_URL else "prefer")
+
+@contextmanager
+def db():
+    conn = get_connection()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 # ── Step 1: create the database ────────────────────────────────────────────────
@@ -148,6 +161,10 @@ def migrate_tables():
         "ALTER TABLE answers ADD COLUMN IF NOT EXISTS filler_counts   JSONB",
         "ALTER TABLE answers ADD COLUMN IF NOT EXISTS star_score      INTEGER",
         "ALTER TABLE answers ADD COLUMN IF NOT EXISTS ai_answer_score REAL",
+
+        # users — email verification
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified     BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT",
     ]
     conn = get_connection()
     try:
@@ -174,42 +191,26 @@ def init_db():
 # ── Query helpers ──────────────────────────────────────────────────────────────
 
 def upsert_user(user_id: str):
-    conn = get_connection()
-    try:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO users (id)
                 VALUES (%s)
                 ON CONFLICT (id) DO UPDATE SET last_seen = NOW()
             """, (user_id,))
-        conn.commit()
-    finally:
-        conn.close()
 
 
 def save_session(
-    user_id: str,
-    role: str,
-    difficulty: str,
-    interview_type: str,
-    overall_score: float,
-    duration_seconds: int,
-    summary: str,
-    top_strength: str,
-    top_improvement: str,
-    answers: list,
-    language: str = "en-US",
-    company_name: str = None,
-    candidate_name: str = None,
-    ai_score: float = None,
-    ai_verdict: str = None,
-    eye_contact_pct: int = None,
-    head_stability_pct: int = None,
-    face_confidence_score: float = None,
-    face_samples_count: int = None,
+    user_id: str, role: str, difficulty: str, interview_type: str,
+    overall_score: float, duration_seconds: int,
+    summary: str, top_strength: str, top_improvement: str,
+    answers: list, language: str = "en-US",
+    company_name: str = None, candidate_name: str = None,
+    ai_score: float = None, ai_verdict: str = None,
+    eye_contact_pct: int = None, head_stability_pct: int = None,
+    face_confidence_score: float = None, face_samples_count: int = None,
 ) -> int:
-    conn = get_connection()
-    try:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO sessions (
@@ -245,44 +246,22 @@ def save_session(
                         star_s, star_t, star_a, star_r,
                         filler_counts, star_score, ai_answer_score
                     )
-                    VALUES (
-                        %s,%s,%s,%s,
-                        %s,%s,%s,%s,
-                        %s,%s,%s,%s,
-                        %s,%s,%s,%s,
-                        %s,%s,%s
-                    )
+                    VALUES (%s,%s,%s,%s, %s,%s,%s,%s, %s,%s,%s,%s, %s,%s,%s,%s, %s,%s,%s)
                 """, (
                     session_id,
-                    a.get("question_index", 0),
-                    a.get("question", ""),
-                    a.get("answer", ""),
-                    a.get("score"),
-                    a.get("feedback", ""),
-                    a.get("tip", ""),
-                    a.get("ideal_answer", ""),
-                    analytics.get("wpm"),
-                    analytics.get("wordCount"),
-                    analytics.get("totalFillers"),
-                    analytics.get("durationSeconds"),
-                    star.get("situation"),
-                    star.get("task"),
-                    star.get("action"),
-                    star.get("result"),
+                    a.get("question_index", 0), a.get("question", ""), a.get("answer", ""),
+                    a.get("score"), a.get("feedback", ""), a.get("tip", ""), a.get("ideal_answer", ""),
+                    analytics.get("wpm"), analytics.get("wordCount"),
+                    analytics.get("totalFillers"), analytics.get("durationSeconds"),
+                    star.get("situation"), star.get("task"), star.get("action"), star.get("result"),
                     json.dumps(analytics.get("fillerCounts")) if analytics.get("fillerCounts") else None,
-                    analytics.get("starScore"),
-                    a.get("ai_answer_score"),
+                    analytics.get("starScore"), a.get("ai_answer_score"),
                 ))
-
-        conn.commit()
         return session_id
-    finally:
-        conn.close()
 
 
 def get_sessions(user_id: str) -> list:
-    conn = get_connection()
-    try:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT id, created_at, role, difficulty, interview_type,
@@ -296,28 +275,20 @@ def get_sessions(user_id: str) -> list:
             """, (user_id,))
             cols = [d[0] for d in cur.description]
             return [dict(zip(cols, row)) for row in cur.fetchall()]
-    finally:
-        conn.close()
 
 
 def delete_session(session_id: int, user_id: str) -> bool:
-    conn = get_connection()
-    try:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "DELETE FROM sessions WHERE id = %s AND user_id = %s",
                 (session_id, user_id),
             )
-            deleted = cur.rowcount > 0
-        conn.commit()
-        return deleted
-    finally:
-        conn.close()
+            return cur.rowcount > 0
 
 
 def get_session_detail(session_id: int, user_id: str) -> dict | None:
-    conn = get_connection()
-    try:
+    with db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT id, created_at, role, difficulty, interview_type,
@@ -333,8 +304,7 @@ def get_session_detail(session_id: int, user_id: str) -> dict | None:
             row = cur.fetchone()
             if not row:
                 return None
-            cols    = [d[0] for d in cur.description]
-            session = dict(zip(cols, row))
+            session = dict(zip([d[0] for d in cur.description], row))
 
             cur.execute("""
                 SELECT question_index, question, answer, score, feedback,
@@ -348,10 +318,54 @@ def get_session_detail(session_id: int, user_id: str) -> dict | None:
             """, (session_id,))
             a_cols             = [d[0] for d in cur.description]
             session["answers"] = [dict(zip(a_cols, r)) for r in cur.fetchall()]
-
         return session
-    finally:
-        conn.close()
+
+
+def db_set_verification_token(user_id: str, token: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET verification_token = %s WHERE id = %s", (token, user_id))
+
+
+def db_get_user_by_verification_token(token: str) -> dict | None:
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, email, name FROM users WHERE verification_token = %s", (token,)
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return dict(zip([d[0] for d in cur.description], row))
+
+
+def db_verify_email(user_id: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET email_verified = TRUE, verification_token = NULL WHERE id = %s",
+                (user_id,),
+            )
+
+
+def db_update_name(user_id: str, name: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET name = %s WHERE id = %s", (name, user_id))
+
+
+def db_update_password(user_id: str, password_hash: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET password_hash = %s WHERE id = %s", (password_hash, user_id))
+
+
+def db_get_password_hash(user_id: str) -> str | None:
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT password_hash FROM users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+            return row[0] if row else None
 
 
 # ── Run directly: python database.py ──────────────────────────────────────────

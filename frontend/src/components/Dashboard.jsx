@@ -6,45 +6,10 @@ import {
 import { fetchSessions, fetchFillerStats, deleteSession } from '../utils/api'
 import { durationLabel } from '../utils/speechAnalytics'
 import { useAuth } from '../context/AuthContext'
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function scoreBg(s) {
-  return s >= 8
-    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-    : s >= 5
-    ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/30'
-    : 'bg-red-500/20 text-red-400 border-red-500/30'
-}
-function scoreColor(s) { return s >= 8 ? 'text-emerald-400' : s >= 5 ? 'text-yellow-400' : 'text-red-400' }
-function scoreHex(s)   { return s >= 8 ? '#10b981' : s >= 5 ? '#f59e0b' : '#ef4444' }
-function aiColor(s)    { return s >= 75 ? 'text-emerald-400' : s >= 50 ? 'text-yellow-400' : 'text-red-400' }
-function aiBg(s) {
-  return s >= 75
-    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-    : s >= 50
-    ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/30'
-    : 'bg-red-500/20 text-red-400 border-red-500/30'
-}
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-function formatShort(iso) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-function difficultyBadge(d) {
-  const map = { Junior: 'text-sky-400 bg-sky-500/10 border-sky-500/20', Mid: 'text-violet-400 bg-violet-500/10 border-violet-500/20', Senior: 'text-amber-400 bg-amber-500/10 border-amber-500/20' }
-  return map[d] || 'text-slate-400 bg-slate-500/10 border-slate-500/20'
-}
-function typeBadge(t) {
-  const map = { full: '🎯 Full', behavioral: '🌟 Behavioral', technical: '⚡ Technical', screening: '📞 Screening', practice: '🎓 Practice' }
-  return map[t] || t || '—'
-}
-function langInfo(code) {
-  return { 'en-US': { flag: '🇬🇧', label: 'English' }, 'de-DE': { flag: '🇩🇪', label: 'Deutsch' }, 'fr-FR': { flag: '🇫🇷', label: 'Français' } }[code]
-    || { flag: '🌐', label: code }
-}
-
-function avgArr(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null }
+import {
+  scoreBg, scoreColor, scoreHex, aiColor, aiBg,
+  formatDate, formatShort, difficultyBadge, typeBadge, langInfo, avgArr,
+} from '../utils/scoring'
 
 // ── Practice streak ───────────────────────────────────────────────────────────
 function calcStreak(sessions) {

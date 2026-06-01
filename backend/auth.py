@@ -1,18 +1,32 @@
 import os
 import uuid
+import secrets
+import smtplib
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import bcrypt as _bcrypt
 from jose import jwt, JWTError
 from pydantic import BaseModel
+from typing import Optional
 
-from database import get_connection
+from database import (
+    get_connection,
+    db_set_verification_token,
+    db_get_user_by_verification_token,
+    db_verify_email,
+    db_update_name,
+    db_update_password,
+    db_get_password_hash,
+)
 
-SECRET_KEY         = os.getenv("JWT_SECRET", "change-me-use-a-long-random-string-in-production")
-ALGORITHM          = "HS256"
-TOKEN_EXPIRE_DAYS  = 30
+SECRET_KEY        = os.getenv("JWT_SECRET", "change-me-use-a-long-random-string-in-production")
+ALGORITHM         = "HS256"
+TOKEN_EXPIRE_DAYS = 30
 
 bearer = HTTPBearer()
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -41,6 +55,100 @@ def decode_token(token: str) -> str:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
+# ── Email helper ───────────────────────────────────────────────────────────────
+
+def _smtp_configured() -> bool:
+    return bool(os.getenv("SMTP_HOST"))
+
+def send_verification_email(to_email: str, name: str, token: str):
+    if not _smtp_configured():
+        return  # SMTP not set up — skip silently
+
+    api_url      = os.getenv("API_BASE_URL",  "http://localhost:8000")
+    frontend_url = os.getenv("FRONTEND_URL",  "http://localhost:5173")
+    smtp_host    = os.getenv("SMTP_HOST")
+    smtp_port    = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user    = os.getenv("SMTP_USER", "")
+    smtp_pass    = os.getenv("SMTP_PASSWORD", "")
+    smtp_from    = os.getenv("SMTP_FROM", smtp_user)
+
+    verify_url = f"{api_url}/auth/verify-email?token={token}"
+    first_name = name.split()[0] if name else "there"
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#020617;font-family:system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td align="center" style="padding:40px 16px;">
+      <table width="480" cellpadding="0" cellspacing="0"
+             style="background:#0f172a;border-radius:20px;border:1px solid #1e293b;overflow:hidden;">
+        <tr>
+          <td style="padding:40px 40px 0;text-align:center;">
+            <div style="display:inline-flex;width:56px;height:56px;border-radius:14px;
+                        background:linear-gradient(135deg,#10b981,#14b8a6);
+                        align-items:center;justify-content:center;margin-bottom:16px;">
+              <span style="font-size:28px;">M</span>
+            </div>
+            <h1 style="margin:0;color:#fff;font-size:24px;font-weight:900;">
+              Mock<span style="color:#10b981;">Mate</span>
+            </h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="color:#e2e8f0;font-size:16px;margin:0 0 8px;">
+              Hi {first_name} 👋
+            </p>
+            <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 28px;">
+              Thanks for signing up! Click the button below to verify your email address
+              and activate your MockMate account.
+            </p>
+            <div style="text-align:center;margin-bottom:28px;">
+              <a href="{verify_url}"
+                 style="display:inline-block;background:linear-gradient(135deg,#10b981,#14b8a6);
+                        color:#fff;font-weight:700;font-size:15px;text-decoration:none;
+                        padding:14px 32px;border-radius:12px;">
+                Verify Email Address
+              </a>
+            </div>
+            <p style="color:#475569;font-size:12px;text-align:center;margin:0;">
+              Button not working? Copy this link:<br/>
+              <a href="{verify_url}" style="color:#10b981;word-break:break-all;">{verify_url}</a>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center;">
+            <p style="color:#334155;font-size:11px;margin:0;">
+              If you didn't create a MockMate account, you can safely ignore this email.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "Verify your MockMate account"
+    msg["From"]    = smtp_from
+    msg["To"]      = to_email
+    msg.attach(MIMEText(html, "html"))
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_from, to_email, msg.as_string())
+        print(f"  ✅ Verification email sent to {to_email}")
+    except Exception as e:
+        print(f"  ⚠️  Failed to send verification email: {e}")
+
+
 # ── DB helpers ─────────────────────────────────────────────────────────────────
 
 def db_get_user_by_email(email: str) -> dict | None:
@@ -48,7 +156,7 @@ def db_get_user_by_email(email: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, password_hash, name, plan FROM users WHERE email = %s",
+                "SELECT id, email, password_hash, name, plan, email_verified FROM users WHERE email = %s",
                 (email.lower().strip(),)
             )
             row = cur.fetchone()
@@ -64,7 +172,7 @@ def db_get_user_by_id(user_id: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, name, plan FROM users WHERE id = %s",
+                "SELECT id, email, name, plan, email_verified FROM users WHERE id = %s",
                 (user_id,)
             )
             row = cur.fetchone()
@@ -75,15 +183,16 @@ def db_get_user_by_id(user_id: str) -> dict | None:
     finally:
         conn.close()
 
-def db_create_user(user_id: str, email: str, password_hash: str, name: str) -> dict:
+def db_create_user(user_id: str, email: str, password_hash: str, name: str,
+                   email_verified: bool = False, verification_token: str | None = None) -> dict:
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO users (id, email, password_hash, name, plan)
-                VALUES (%s, %s, %s, %s, 'free')
-                RETURNING id, email, name, plan
-            """, (user_id, email, password_hash, name))
+                INSERT INTO users (id, email, password_hash, name, plan, email_verified, verification_token)
+                VALUES (%s, %s, %s, %s, 'free', %s, %s)
+                RETURNING id, email, name, plan, email_verified
+            """, (user_id, email, password_hash, name, email_verified, verification_token))
             row  = cur.fetchone()
             cols = [d[0] for d in cur.description]
         conn.commit()
@@ -113,6 +222,13 @@ class LoginRequest(BaseModel):
     email:    str
     password: str
 
+class UpdateProfileRequest(BaseModel):
+    name: str
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str
+    new_password:     str
+
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
@@ -129,15 +245,26 @@ def register(req: RegisterRequest):
         raise HTTPException(status_code=409, detail="An account with this email already exists")
 
     user_id = str(uuid.uuid4())
-    user    = db_create_user(user_id, email, hash_password(req.password), name)
-    token   = create_token(user_id)
 
-    return {"token": token, "user": {
-        "id":    str(user["id"]),
-        "email": user["email"],
-        "name":  user["name"],
-        "plan":  user["plan"],
-    }}
+    if _smtp_configured():
+        # Create unverified user, send email
+        ver_token = secrets.token_urlsafe(32)
+        db_create_user(user_id, email, hash_password(req.password), name,
+                       email_verified=False, verification_token=ver_token)
+        send_verification_email(email, name, ver_token)
+        return {"needs_verification": True, "email": email}
+    else:
+        # No SMTP — auto-verify and log in immediately
+        user  = db_create_user(user_id, email, hash_password(req.password), name,
+                               email_verified=True)
+        token = create_token(user_id)
+        return {"token": token, "user": {
+            "id":             str(user["id"]),
+            "email":          user["email"],
+            "name":           user["name"],
+            "plan":           user["plan"],
+            "email_verified": True,
+        }}
 
 
 @router.post("/login")
@@ -147,6 +274,8 @@ def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not verify_password(req.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if _smtp_configured() and not user.get("email_verified"):
+        raise HTTPException(status_code=403, detail="Please verify your email before logging in.")
 
     conn = get_connection()
     try:
@@ -157,18 +286,50 @@ def login(req: LoginRequest):
         conn.close()
 
     return {"token": create_token(str(user["id"])), "user": {
-        "id":    str(user["id"]),
-        "email": user["email"],
-        "name":  user["name"],
-        "plan":  user["plan"],
+        "id":             str(user["id"]),
+        "email":          user["email"],
+        "name":           user["name"],
+        "plan":           user["plan"],
+        "email_verified": bool(user.get("email_verified")),
     }}
+
+
+@router.get("/verify-email")
+def verify_email(token: str):
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    user = db_get_user_by_verification_token(token)
+    if not user:
+        return RedirectResponse(f"{frontend_url}?verified=error")
+    db_verify_email(str(user["id"]))
+    return RedirectResponse(f"{frontend_url}?verified=true")
 
 
 @router.get("/me")
 def me(current_user: dict = Depends(get_current_user)):
     return {
-        "id":    str(current_user["id"]),
-        "email": current_user["email"],
-        "name":  current_user["name"],
-        "plan":  current_user["plan"],
+        "id":             str(current_user["id"]),
+        "email":          current_user["email"],
+        "name":           current_user["name"],
+        "plan":           current_user["plan"],
+        "email_verified": bool(current_user.get("email_verified")),
     }
+
+
+@router.patch("/profile")
+def update_profile(req: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
+    name = req.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name cannot be empty")
+    db_update_name(str(current_user["id"]), name)
+    return {"ok": True, "name": name}
+
+
+@router.patch("/password")
+def update_password(req: UpdatePasswordRequest, current_user: dict = Depends(get_current_user)):
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    current_hash = db_get_password_hash(str(current_user["id"]))
+    if not current_hash or not verify_password(req.current_password, current_hash):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    db_update_password(str(current_user["id"]), hash_password(req.new_password))
+    return {"ok": True}

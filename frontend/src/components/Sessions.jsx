@@ -1,38 +1,12 @@
 import { useState, useEffect } from 'react'
 import { fetchSessions, fetchSessionDetail } from '../utils/api'
 import { durationLabel } from '../utils/speechAnalytics'
+import {
+  scoreBg, scoreHex as scoreGradient, aiColor, aiBg,
+  formatDate, difficultyBadge, typeBadge, langInfo,
+} from '../utils/scoring'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function scoreBg(s) {
-  return s >= 8
-    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-    : s >= 5
-    ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/30'
-    : 'bg-red-500/20 text-red-400 border-red-500/30'
-}
-function scoreGradient(s) { return s >= 8 ? '#10b981' : s >= 5 ? '#f59e0b' : '#ef4444' }
-function aiColor(s)       { return s >= 75 ? 'text-emerald-400' : s >= 50 ? 'text-yellow-400' : 'text-red-400' }
-function aiBg(s) {
-  return s >= 75
-    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-    : s >= 50
-    ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/30'
-    : 'bg-red-500/20 text-red-400 border-red-500/30'
-}
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-function difficultyBadge(d) {
-  const map = { Junior: 'text-sky-400 bg-sky-500/10', Mid: 'text-violet-400 bg-violet-500/10', Senior: 'text-amber-400 bg-amber-500/10' }
-  return map[d] || 'text-slate-400 bg-slate-500/10'
-}
-function typeBadge(t) {
-  const map = { full: '🎯 Full', behavioral: '🌟 Behavioral', technical: '⚡ Technical', screening: '📞 Screening', practice: '🎯 Practice' }
-  return map[t] || t || '—'
-}
-function langFlag(code) {
-  return { 'en-US': '🇬🇧', 'de-DE': '🇩🇪', 'fr-FR': '🇫🇷' }[code] || null
-}
+function langFlag(code) { return langInfo(code).flag }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────
 function ProgressBar({ pct, color }) {

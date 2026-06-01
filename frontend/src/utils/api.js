@@ -1,6 +1,5 @@
 import { getUserId } from './userId'
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+import { BACKEND_URL } from './config'
 
 /**
  * Save a completed session + answers to PostgreSQL.

@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+import { BACKEND_URL } from '../utils/config'
 
 function BgOrbs() {
   return (
@@ -12,15 +11,41 @@ function BgOrbs() {
   )
 }
 
+function EyeIcon({ open }) {
+  return open ? (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+    </svg>
+  ) : (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  )
+}
+
 export default function Auth() {
   const { login } = useAuth()
-  const [mode,      setMode]      = useState('login')   // 'login' | 'register'
-  const [name,      setName]      = useState('')
-  const [email,     setEmail]     = useState('')
-  const [password,  setPassword]  = useState('')
-  const [showPass,  setShowPass]  = useState(false)
-  const [error,     setError]     = useState('')
-  const [loading,   setLoading]   = useState(false)
+  const [mode,          setMode]          = useState('login')
+  const [name,          setName]          = useState('')
+  const [email,         setEmail]         = useState('')
+  const [password,      setPassword]      = useState('')
+  const [showPass,      setShowPass]      = useState(false)
+  const [error,         setError]         = useState('')
+  const [loading,       setLoading]       = useState(false)
+  const [verifyPending, setVerifyPending] = useState(null) // email string when awaiting verification
+  const [verifiedBanner, setVerifiedBanner] = useState(null) // 'success' | 'error'
+
+  // Handle ?verified=true or ?verified=error coming back from the email link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const v = params.get('verified')
+    if (v === 'true')  setVerifiedBanner('success')
+    if (v === 'error') setVerifiedBanner('error')
+    if (v) window.history.replaceState({}, '', window.location.pathname)
+  }, [])
 
   const switchMode = (m) => { setMode(m); setError(''); setShowPass(false) }
 
@@ -30,9 +55,7 @@ export default function Auth() {
     setLoading(true)
 
     const endpoint = mode === 'register' ? '/auth/register' : '/auth/login'
-    const body     = mode === 'register'
-      ? { email, password, name }
-      : { email, password }
+    const body     = mode === 'register' ? { email, password, name } : { email, password }
 
     try {
       const res  = await fetch(`${BACKEND_URL}${endpoint}`, {
@@ -45,6 +68,10 @@ export default function Auth() {
         setError(data.detail || 'Something went wrong.')
         return
       }
+      if (data.needs_verification) {
+        setVerifyPending(data.email)
+        return
+      }
       login(data.token, data.user)
     } catch {
       setError('Could not connect to the server. Is the backend running?')
@@ -53,11 +80,56 @@ export default function Auth() {
     }
   }
 
+  // ── "Check your email" screen ─────────────────────────────────────────────
+  if (verifyPending) {
+    return (
+      <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
+        <BgOrbs />
+        <div className="relative z-10 w-full max-w-md text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-black text-white mb-2">Check your email</h2>
+          <p className="text-slate-400 text-sm mb-1">We sent a verification link to</p>
+          <p className="text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
+          <p className="text-slate-600 text-xs mb-8">
+            Click the link in the email to activate your account.<br />
+            It may take a minute to arrive.
+          </p>
+          <button
+            onClick={() => { setVerifyPending(null); setMode('login') }}
+            className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+          >
+            ← Back to sign in
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Main auth form ────────────────────────────────────────────────────────
   return (
     <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
       <BgOrbs />
 
       <div className="relative z-10 w-full max-w-md">
+
+        {/* Email verified banner */}
+        {verifiedBanner === 'success' && (
+          <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-400 text-sm">
+            <span className="text-base">✅</span>
+            <span>Email verified! You can now sign in.</span>
+          </div>
+        )}
+        {verifiedBanner === 'error' && (
+          <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-400 text-sm">
+            <span className="text-base">❌</span>
+            <span>Verification link is invalid or has expired.</span>
+          </div>
+        )}
 
         {/* Logo */}
         <div className="text-center mb-8">
@@ -97,9 +169,7 @@ export default function Auth() {
             {/* Name — register only */}
             {mode === 'register' && (
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-1.5">
-                  Full Name
-                </label>
+                <label className="block text-slate-300 text-sm font-semibold mb-1.5">Full Name</label>
                 <input
                   type="text"
                   required
@@ -114,9 +184,7 @@ export default function Auth() {
 
             {/* Email */}
             <div>
-              <label className="block text-slate-300 text-sm font-semibold mb-1.5">
-                Email
-              </label>
+              <label className="block text-slate-300 text-sm font-semibold mb-1.5">Email</label>
               <input
                 type="email"
                 required
@@ -149,20 +217,11 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
                   tabIndex={-1}
                   title={showPass ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
                 >
-                  {showPass ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
+                  <EyeIcon open={showPass} />
                 </button>
               </div>
             </div>
