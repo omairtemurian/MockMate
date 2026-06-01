@@ -60,6 +60,10 @@ def decode_token(token: str) -> str:
 def _smtp_configured() -> bool:
     return bool(os.getenv("SMTP_HOST"))
 
+def _effective_verified(user: dict) -> bool:
+    """When SMTP is off everyone is auto-verified; when SMTP is on use DB value."""
+    return not _smtp_configured() or bool(user.get("email_verified"))
+
 def send_verification_email(to_email: str, name: str, token: str):
     if not _smtp_configured():
         return  # SMTP not set up — skip silently
@@ -281,6 +285,9 @@ def login(req: LoginRequest):
     try:
         with conn.cursor() as cur:
             cur.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (str(user["id"]),))
+            # Auto-verify in DB when SMTP is off so the flag stays consistent
+            if not _smtp_configured() and not user.get("email_verified"):
+                cur.execute("UPDATE users SET email_verified = TRUE WHERE id = %s", (str(user["id"]),))
         conn.commit()
     finally:
         conn.close()
@@ -290,7 +297,7 @@ def login(req: LoginRequest):
         "email":          user["email"],
         "name":           user["name"],
         "plan":           user["plan"],
-        "email_verified": bool(user.get("email_verified")),
+        "email_verified": _effective_verified(user),
     }}
 
 
@@ -311,7 +318,7 @@ def me(current_user: dict = Depends(get_current_user)):
         "email":          current_user["email"],
         "name":           current_user["name"],
         "plan":           current_user["plan"],
-        "email_verified": bool(current_user.get("email_verified")),
+        "email_verified": _effective_verified(current_user),
     }
 
 
