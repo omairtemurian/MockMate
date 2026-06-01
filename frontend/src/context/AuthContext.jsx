@@ -65,8 +65,25 @@ export function AuthProvider({ children }) {
     })
   }
 
+  const refreshUser = async () => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return
+    try {
+      const { token: t, user: u } = JSON.parse(stored)
+      const res = await fetch(`${BACKEND_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${t}` },
+      })
+      if (res.ok) {
+        const fresh = await res.json()
+        const merged = { ...u, ...fresh }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: t, user: merged }))
+        setUser(merged)
+      }
+    } catch {}
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, refreshUser, loading }}>
       {children}
     </AuthContext.Provider>
   )

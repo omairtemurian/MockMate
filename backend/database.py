@@ -165,6 +165,10 @@ def migrate_tables():
         # users — email verification
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified     BOOLEAN DEFAULT FALSE",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT",
+
+        # users — email change flow
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS pending_email      TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_change_token TEXT",
     ]
     conn = get_connection()
     try:
@@ -366,6 +370,53 @@ def db_get_password_hash(user_id: str) -> str | None:
             cur.execute("SELECT password_hash FROM users WHERE id = %s", (user_id,))
             row = cur.fetchone()
             return row[0] if row else None
+
+
+def db_set_pending_email(user_id: str, new_email: str, token: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET pending_email = %s, email_change_token = %s WHERE id = %s",
+                (new_email, token, user_id),
+            )
+
+
+def db_get_user_by_email_change_token(token: str) -> dict | None:
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, email, pending_email, name FROM users WHERE email_change_token = %s",
+                (token,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return dict(zip([d[0] for d in cur.description], row))
+
+
+def db_confirm_email_change(user_id: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE users
+                SET email = pending_email, pending_email = NULL, email_change_token = NULL
+                WHERE id = %s
+            """, (user_id,))
+
+
+def db_update_email(user_id: str, new_email: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET email = %s WHERE id = %s", (new_email, user_id))
+
+
+def db_cancel_email_change(user_id: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET pending_email = NULL, email_change_token = NULL WHERE id = %s",
+                (user_id,),
+            )
 
 
 # ── Run directly: python database.py ──────────────────────────────────────────

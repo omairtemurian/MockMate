@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth, getStoredToken } from '../context/AuthContext'
+
 import { BACKEND_URL } from '../utils/config'
 
 const isVerified = (user) => user?.email_verified === true
@@ -100,6 +101,13 @@ export default function Settings({ onNavigate }) {
   const [resendMsg,      setResendMsg]      = useState(null)
   const [resendLoading,  setResendLoading]  = useState(false)
 
+  // Email change
+  const [newEmail,      setNewEmail]      = useState('')
+  const [emailMsg,      setEmailMsg]      = useState(null)
+  const [emailLoading,  setEmailLoading]  = useState(false)
+  const [emailPending,  setEmailPending]  = useState(user?.pending_email || null)
+  const [cancelLoading, setCancelLoading] = useState(false)
+
   // Password
   const [currentPw,  setCurrentPw]  = useState('')
   const [newPw,      setNewPw]      = useState('')
@@ -126,6 +134,55 @@ export default function Settings({ onNavigate }) {
       setResendMsg({ type: 'error', text: 'Could not connect to server.' })
     } finally {
       setResendLoading(false)
+    }
+  }
+
+  const handleEmailChange = async (e) => {
+    e.preventDefault()
+    const trimmed = newEmail.trim().toLowerCase()
+    if (!trimmed || !trimmed.includes('@')) {
+      setEmailMsg({ type: 'error', text: 'Enter a valid email address.' }); return
+    }
+    setEmailLoading(true)
+    setEmailMsg(null)
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/email`, {
+        method: 'PATCH', headers: authHeaders,
+        body: JSON.stringify({ new_email: trimmed }),
+      })
+      const d = await res.json()
+      if (res.ok) {
+        if (d.pending) {
+          setEmailPending(d.email)
+          setEmailMsg({ type: 'success', text: `Verification link sent to ${d.email}. Click it to confirm.` })
+        } else {
+          updateUser({ email: d.email })
+          setEmailMsg({ type: 'success', text: 'Email updated successfully.' })
+        }
+        setNewEmail('')
+      } else {
+        setEmailMsg({ type: 'error', text: d.detail || 'Failed to change email.' })
+      }
+    } catch {
+      setEmailMsg({ type: 'error', text: 'Could not connect to server.' })
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  const handleCancelEmailChange = async () => {
+    setCancelLoading(true)
+    try {
+      await fetch(`${BACKEND_URL}/auth/cancel-email-change`, {
+        method: 'POST', headers: authHeaders,
+      })
+      setEmailPending(null)
+      updateUser({ pending_email: null })
+      setEmailMsg({ type: 'success', text: 'Email change cancelled.' })
+    } catch {
+      setEmailMsg({ type: 'error', text: 'Could not connect to server.' })
+    } finally {
+      setCancelLoading(false)
     }
   }
 
@@ -272,6 +329,53 @@ export default function Settings({ onNavigate }) {
               className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all"
             >
               {profileLoading ? 'Saving…' : 'Save Name'}
+            </button>
+          </form>
+        </Section>
+
+        {/* Email change */}
+        <Section title="📧 Change Email">
+          {emailPending && (
+            <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3 text-sm text-amber-300">
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold">Awaiting confirmation</p>
+                <p className="text-amber-400/80 text-xs mt-0.5 break-all">
+                  A verification link was sent to <span className="font-semibold">{emailPending}</span>. Click it to confirm the change.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCancelEmailChange}
+                disabled={cancelLoading}
+                className="text-amber-500 hover:text-amber-300 text-xs font-semibold flex-shrink-0 transition-colors disabled:opacity-40"
+              >
+                {cancelLoading ? '…' : 'Cancel'}
+              </button>
+            </div>
+          )}
+          <form onSubmit={handleEmailChange} className="space-y-4">
+            <Field label="New Email Address">
+              <input
+                type="email"
+                value={newEmail}
+                onChange={e => setNewEmail(e.target.value)}
+                placeholder="new@example.com"
+                autoComplete="email"
+                className="w-full bg-slate-900/70 border border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+              />
+            </Field>
+            {emailMsg && (
+              <Toast type={emailMsg.type} message={emailMsg.text} onDismiss={() => setEmailMsg(null)} />
+            )}
+            <button
+              type="submit"
+              disabled={emailLoading || !newEmail.trim()}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all"
+            >
+              {emailLoading ? 'Sending…' : 'Send verification link'}
             </button>
           </form>
         </Section>

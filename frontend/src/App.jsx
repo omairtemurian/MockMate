@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Auth      from './components/Auth'
 import Sidebar   from './components/Sidebar'
@@ -12,7 +12,7 @@ import Settings      from './components/Settings'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function AppInner() {
-  const { user, loading } = useAuth()
+  const { user, loading, refreshUser } = useAuth()
 
   const [view,            setView]            = useState('dashboard')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -22,6 +22,25 @@ function AppInner() {
   const [duration,        setDuration]        = useState(0)
   const [faceMetrics,     setFaceMetrics]     = useState(null)
   const [recording,       setRecording]       = useState(null)
+  const [banner,          setBanner]          = useState(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('email_changed') === 'true') {
+      refreshUser()
+      setBanner({ type: 'success', text: 'Email address updated successfully!' })
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (params.get('email_change_error')) {
+      const reason = params.get('email_change_error')
+      setBanner({
+        type: 'error',
+        text: reason === 'taken'
+          ? 'That email is already in use by another account.'
+          : 'Email change link is invalid or has expired.',
+      })
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])  // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -76,6 +95,18 @@ function AppInner() {
       )}
 
       {showProModal && <ProModal onClose={() => setShowProModal(false)} />}
+
+      {/* Global notification banner (e.g. email changed redirect) */}
+      {banner && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border text-sm font-semibold shadow-xl backdrop-blur-sm transition-all ${
+          banner.type === 'success'
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+            : 'bg-red-500/10 border-red-500/25 text-red-400'
+        }`}>
+          <span>{banner.text}</span>
+          <button onClick={() => setBanner(null)} className="opacity-60 hover:opacity-100 text-lg leading-none transition-opacity">×</button>
+        </div>
+      )}
 
       {/* Main content — offset by sidebar width when visible */}
       <main className={`flex-1 min-h-screen transition-all duration-300 ${
