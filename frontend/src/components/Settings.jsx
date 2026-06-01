@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useAuth, getStoredToken } from '../context/AuthContext'
 import { BACKEND_URL } from '../utils/config'
 
+const isVerified = (user) => user?.email_verified === true
+
 function Section({ title, children }) {
   return (
     <div className="glass border border-slate-700/40 rounded-2xl p-6 space-y-5">
@@ -92,9 +94,11 @@ export default function Settings({ onNavigate }) {
   const { user, updateUser } = useAuth()
 
   // Profile
-  const [name,         setName]         = useState(user?.name || '')
-  const [profileMsg,   setProfileMsg]   = useState(null)
+  const [name,           setName]           = useState(user?.name || '')
+  const [profileMsg,     setProfileMsg]     = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
+  const [resendMsg,      setResendMsg]      = useState(null)
+  const [resendLoading,  setResendLoading]  = useState(false)
 
   // Password
   const [currentPw,  setCurrentPw]  = useState('')
@@ -106,6 +110,23 @@ export default function Settings({ onNavigate }) {
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${getStoredToken()}`,
+  }
+
+  const handleResend = async () => {
+    setResendLoading(true)
+    setResendMsg(null)
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/resend-verification`, {
+        method: 'POST', headers: authHeaders,
+      })
+      const d = await res.json()
+      if (res.ok) setResendMsg({ type: 'success', text: 'Verification email sent! Check your inbox.' })
+      else        setResendMsg({ type: 'error',   text: d.detail || 'Could not send email.' })
+    } catch {
+      setResendMsg({ type: 'error', text: 'Could not connect to server.' })
+    } finally {
+      setResendLoading(false)
+    }
   }
 
   const handleProfileSave = async (e) => {
@@ -206,15 +227,41 @@ export default function Settings({ onNavigate }) {
                   disabled
                   className="flex-1 bg-slate-900/30 border border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-500 text-sm cursor-not-allowed"
                 />
-                {user?.email_verified !== false && (
+                {isVerified(user) ? (
                   <span className="text-emerald-400 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     Verified
                   </span>
+                ) : (
+                  <span className="text-amber-400 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Not verified
+                  </span>
                 )}
               </div>
+              {/* Resend option for unverified accounts */}
+              {!isVerified(user) && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-slate-600 text-xs">
+                    Your email is not verified. Click below to receive a new verification link.
+                  </p>
+                  {resendMsg && (
+                    <Toast type={resendMsg.type} message={resendMsg.text} onDismiss={() => setResendMsg(null)} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendLoading}
+                    className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold transition-colors disabled:opacity-40"
+                  >
+                    {resendLoading ? 'Sending…' : '↻ Resend verification email'}
+                  </button>
+                </div>
+              )}
             </Field>
             {profileMsg && (
               <Toast type={profileMsg.type} message={profileMsg.text} onDismiss={() => setProfileMsg(null)} />

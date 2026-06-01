@@ -315,6 +315,18 @@ def me(current_user: dict = Depends(get_current_user)):
     }
 
 
+@router.post("/resend-verification")
+def resend_verification(current_user: dict = Depends(get_current_user)):
+    if not _smtp_configured():
+        raise HTTPException(status_code=400, detail="Email verification is not enabled on this server.")
+    if current_user.get("email_verified"):
+        raise HTTPException(status_code=400, detail="Email is already verified.")
+    ver_token = secrets.token_urlsafe(32)
+    db_set_verification_token(str(current_user["id"]), ver_token)
+    send_verification_email(current_user["email"], current_user["name"] or "", ver_token)
+    return {"ok": True}
+
+
 @router.patch("/profile")
 def update_profile(req: UpdateProfileRequest, current_user: dict = Depends(get_current_user)):
     name = req.name.strip()

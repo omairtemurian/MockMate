@@ -22,8 +22,13 @@ export function AuthProvider({ children }) {
         headers: { Authorization: `Bearer ${t}` },
       })
         .then(res => {
-          if (res.ok) { setToken(t); setUser(u) }
-          else        { localStorage.removeItem(STORAGE_KEY) }
+          if (res.ok) return res.json().then(fresh => {
+            // Use fresh data from server so email_verified etc. are always current
+            const merged = { ...u, ...fresh }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: t, user: merged }))
+            setToken(t); setUser(merged)
+          })
+          localStorage.removeItem(STORAGE_KEY)
         })
         .catch(() => {
           // Network unavailable — trust cached session
