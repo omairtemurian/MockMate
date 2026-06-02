@@ -14,13 +14,13 @@ import ProModal     from './components/ProModal'
 import Settings     from './components/Settings'
 import ErrorBoundary from './components/ErrorBoundary'
 
-function ThemeToggle() {
+function ThemeToggle({ belowHeader }) {
   const { theme, toggleTheme } = useTheme()
   return (
     <button
       onClick={toggleTheme}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="fixed top-4 right-4 z-[9999] w-9 h-9 flex items-center justify-center rounded-full glass border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:shadow-md transition-all"
+      className={`fixed right-4 z-[9999] w-9 h-9 flex items-center justify-center rounded-full glass border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:shadow-md transition-all ${belowHeader ? 'top-20' : 'top-4'}`}
     >
       {theme === 'dark' ? (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@ function AppInner() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <ThemeToggle />
+      <ThemeToggle belowHeader={view === 'interview' || view === 'debrief'} />
 
       {sidebarViews.includes(view) && (
         <Sidebar
