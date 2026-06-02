@@ -31,9 +31,11 @@ export default function Auth() {
   const [mode,          setMode]          = useState('login')
   const [name,          setName]          = useState('')
   const [email,         setEmail]         = useState('')
-  const [password,      setPassword]      = useState('')
-  const [showPass,      setShowPass]      = useState(false)
-  const [error,         setError]         = useState('')
+  const [password,        setPassword]        = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPass,        setShowPass]        = useState(false)
+  const [showConfirmPass, setShowConfirmPass] = useState(false)
+  const [error,           setError]           = useState('')
   const [loading,       setLoading]       = useState(false)
   const [verifyPending, setVerifyPending] = useState(null) // email string when awaiting verification
   const [verifiedBanner, setVerifiedBanner] = useState(null) // 'success' | 'error'
@@ -47,11 +49,19 @@ export default function Auth() {
     if (v) window.history.replaceState({}, '', window.location.pathname)
   }, [])
 
-  const switchMode = (m) => { setMode(m); setError(''); setShowPass(false) }
+  const switchMode = (m) => {
+    setMode(m); setError(''); setShowPass(false); setShowConfirmPass(false); setConfirmPassword('')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
     setLoading(true)
 
     const endpoint = mode === 'register' ? '/auth/register' : '/auth/login'
@@ -225,6 +235,55 @@ export default function Auth() {
                 </button>
               </div>
             </div>
+
+            {/* Confirm Password — register only */}
+            {mode === 'register' && (
+              <div>
+                <label className="block text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPass ? 'text' : 'password'}
+                    required
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`w-full bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
+                      confirmPassword && confirmPassword !== password
+                        ? 'border-red-500/60 focus:ring-red-500/40 focus:border-red-500/50'
+                        : confirmPassword && confirmPassword === password
+                          ? 'border-emerald-500/50 focus:ring-emerald-500/40 focus:border-emerald-500/50'
+                          : 'border-slate-700/60 focus:ring-emerald-500/50 focus:border-emerald-500/40'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPass(v => !v)}
+                    tabIndex={-1}
+                    title={showConfirmPass ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                  >
+                    <EyeIcon open={showConfirmPass} />
+                  </button>
+                  {confirmPassword && confirmPassword === password && (
+                    <span className="absolute right-9 top-1/2 -translate-y-1/2 text-emerald-400 text-xs">✓</span>
+                  )}
+                </div>
+                {confirmPassword && confirmPassword !== password && (
+                  <p className="text-red-400 text-xs mt-1.5 ml-1">Passwords do not match</p>
+                )}
+              </div>
+            )}
+
+            {/* Email verification notice — register only */}
+            {mode === 'register' && (
+              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-700/40 rounded-2xl px-4 py-3">
+                <span className="text-base mt-0.5">📧</span>
+                <p className="text-slate-500 text-xs leading-relaxed">
+                  We'll send a verification link to your email address to activate your account.
+                </p>
+              </div>
+            )}
 
             {/* Error */}
             {error && (
