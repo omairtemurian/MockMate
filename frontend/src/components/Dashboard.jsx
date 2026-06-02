@@ -448,11 +448,10 @@ export default function Dashboard({ onNavigate }) {
         ) : (
           <>
             {/* ── Step 1: Stats (6 cards) ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <StatCard icon="📋" label="Sessions"    value={sessions.length}  sub={`${durationLabel(totalSeconds)} total`} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <StatCard icon="📋" label="Sessions"    value={sessions.length}  sub={thisMonth ? `${thisMonth} this month · ${durationLabel(totalSeconds)}` : durationLabel(totalSeconds)} />
               <StatCard icon="⭐" label="Avg Score"   value={avgScore ? `${avgScore.toFixed(1)}/10` : '–'} sub="Content quality" color={avgScore ? scoreColor(avgScore) : 'text-slate-500'} />
               <StatCard icon="🤖" label="Avg AI"      value={avgAI != null ? `${avgAI}` : '–'} sub="/100 overall" color={avgAI != null ? aiColor(avgAI) : 'text-slate-500'} />
-              <StatCard icon="📅" label="This Month"  value={thisMonth || '–'} sub={thisMonth ? 'sessions' : 'No sessions yet'} color="text-cyan-400" />
               <StatCard
                 icon="🏆" label="Best Session"
                 value={bestSession ? parseFloat(bestSession.overall_score).toFixed(1) : '–'}
