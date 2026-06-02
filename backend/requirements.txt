@@ -6,4 +6,7 @@ pydantic
 pdfplumber
 python-docx
 python-multipart
+psycopg[binary]
 httpx
+bcrypt
+python-jose[cryptography]

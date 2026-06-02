@@ -1,14 +1,11 @@
 import os
-import io
-import json
-import re
 import httpx
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Any
 from openai import OpenAI
 from dotenv import load_dotenv
 from prompts import (
@@ -18,21 +15,52 @@ from prompts import (
     DEBRIEF_PROMPT,
     INTERVIEW_TYPE_PROMPTS,
     QUESTION_BANK_PROMPT,
+    CV_PARSE_PROMPT,
     language_instruction,
 )
+from helpers import (
+    extract_json,
+    trim_history,
+    trim_to_words,
+    chat,
+    extract_text_from_pdf,
+    extract_text_from_docx,
+)
+from database import init_db, upsert_user, save_session, get_sessions, get_session_detail, save_cv_profile, get_cv_profile, delete_session, get_connection
+from auth import router as auth_router
 
 
 load_dotenv()
 
 app = FastAPI(title="MockMate API")
 
+
+REQUIRED_ENV = ["OPENROUTER_API_KEY", "JWT_SECRET", "DATABASE_URL"]
+OPTIONAL_ENV = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "ELEVENLABS_API_KEY",
+                "API_BASE_URL", "FRONTEND_URL"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
+
+@app.on_event("startup")
+def startup():
+    missing = [k for k in REQUIRED_ENV if not os.getenv(k)]
+    if missing:
+        print(f"⛔  Missing required env vars: {', '.join(missing)}")
+    unset_optional = [k for k in OPTIONAL_ENV if not os.getenv(k)]
+    if unset_optional:
+        print(f"ℹ️   Optional env vars not set: {', '.join(unset_optional)}")
+    try:
+        init_db()
+    except Exception as e:
+        print(f"⚠️  Database init failed (dashboard disabled): {e}")
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -99,50 +127,6 @@ class DebriefRequest(BaseModel):
     language: Optional[str] = "en-US"
 
 
-# --- Helpers ---
-
-def extract_json(text: str) -> dict:
-    cleaned = re.sub(r"```(?:json)?", "", text).replace("```", "").strip()
-    return json.loads(cleaned)
-
-
-def trim_history(history: List[Message], max_messages: int = 6) -> List[Message]:
-    return history[-max_messages:]
-
-
-def trim_to_words(text: str, max_words: int) -> str:
-    words = text.split()
-    if len(words) <= max_words:
-        return text
-    return " ".join(words[:max_words]) + "..."
-
-
-def chat(messages: list, max_tokens: int) -> str:
-    response = client.chat.completions.create(
-        model=MODEL,
-        max_tokens=max_tokens,
-        messages=messages,
-    )
-    return response.choices[0].message.content
-
-
-def extract_text_from_pdf(file_bytes: bytes) -> str:
-    import pdfplumber
-    text_parts = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-            t = page.extract_text()
-            if t:
-                text_parts.append(t)
-    return "\n".join(text_parts)
-
-
-def extract_text_from_docx(file_bytes: bytes) -> str:
-    from docx import Document
-    doc = Document(io.BytesIO(file_bytes))
-    return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-
-
 # --- Endpoints ---
 
 @app.post("/extract-cv")
@@ -169,6 +153,31 @@ async def extract_cv(file: UploadFile = File(...)):
 
     trimmed = trim_to_words(raw_text, MAX_CV_WORDS)
     return {"cv_text": trimmed, "word_count": len(trimmed.split())}
+
+
+@app.post("/extract-text")
+async def extract_text(file: UploadFile = File(...)):
+    filename = file.filename.lower()
+    file_bytes = await file.read()
+    try:
+        if filename.endswith(".pdf"):
+            raw_text = extract_text_from_pdf(file_bytes)
+        elif filename.endswith(".docx"):
+            raw_text = extract_text_from_docx(file_bytes)
+        elif filename.endswith(".txt"):
+            raw_text = file_bytes.decode("utf-8", errors="ignore")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+
+    if not raw_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from the file. Try a different format.")
+
+    trimmed = trim_to_words(raw_text, MAX_CV_WORDS)
+    return {"text": trimmed, "word_count": len(trimmed.split())}
 
 
 @app.post("/parse-jd")
@@ -207,10 +216,8 @@ async def parse_jd(req: ParseJDRequest):
     )
 
     try:
-        raw = chat([{"role": "user", "content": prompt}], max_tokens=800)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
         data = extract_json(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse JD response as JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -257,10 +264,8 @@ async def question_bank(req: QuestionBankRequest):
     )
 
     try:
-        raw = chat([{"role": "user", "content": prompt}], max_tokens=800)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
         data = extract_json(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse question bank response as JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -320,7 +325,7 @@ async def respond(req: RespondRequest):
         )
         messages.append({"role": "user", "content": f"[Candidate answer]: {req.user_answer}\n\n[Instruction]: {instruction}"})
         try:
-            reply = chat(messages, max_tokens=80).strip()
+            reply = chat(client, MODEL, messages, max_tokens=80).strip()
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         return {"reply": reply, "done": False, "followup": True}
@@ -340,7 +345,7 @@ async def respond(req: RespondRequest):
     messages.append({"role": "user", "content": f"[Candidate answer]: {req.user_answer}\n\n[Instruction]: {instruction}"})
 
     try:
-        reply = chat(messages, max_tokens=300).strip()
+        reply = chat(client, MODEL, messages, max_tokens=300).strip()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -361,6 +366,57 @@ async def upload_recording(file: UploadFile = File(...)):
     return {"message": "Recording saved successfully", "filename": filename, "path": file_path}
 
 
+@app.post("/cv-profile")
+async def upload_cv_profile(user_id: str = Form(...), file: UploadFile = File(...)):
+    filename = file.filename or ""
+    fname_lower = filename.lower()
+    file_bytes = await file.read()
+
+    try:
+        if fname_lower.endswith(".pdf"):
+            raw_text = extract_text_from_pdf(file_bytes)
+        elif fname_lower.endswith(".docx"):
+            raw_text = extract_text_from_docx(file_bytes)
+        elif fname_lower.endswith(".txt"):
+            raw_text = file_bytes.decode("utf-8", errors="ignore")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+
+    if not raw_text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from the file.")
+
+    # Limit text length before sending to AI (avoid token overflow)
+    words = raw_text.split()
+    cv_text_trimmed = " ".join(words[:1200])
+
+    try:
+        prompt = CV_PARSE_PROMPT.format(cv_text=cv_text_trimmed)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=2000)
+        parsed = extract_json(raw)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse CV: {str(e)}")
+
+    try:
+        upsert_user(user_id)
+        save_cv_profile(user_id, filename, raw_text, parsed)
+    except Exception:
+        pass  # DB save failure should not block the response
+
+    return {"parsed": parsed, "filename": filename}
+
+
+@app.get("/cv-profile")
+def get_cv_profile_endpoint(user_id: str):
+    profile = get_cv_profile(user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="No CV profile found")
+    return profile
+
+
 @app.post("/debrief")
 async def debrief(req: DebriefRequest):
     if len(req.qa_pairs) == 0:
@@ -370,21 +426,17 @@ async def debrief(req: DebriefRequest):
         [f"Q{i+1}: {pair.question}\nA{i+1}: {pair.answer}" for i, pair in enumerate(req.qa_pairs)]
     )
 
-    prompt = DEBRIEF_PROMPT.format(
-        qa_pairs=qa_text,
-        language_instruction=language_instruction(req.language or "en-US"),
-    )
+    # Use replace() so curly braces in user answers don't break Python's .format()
+    lang = language_instruction(req.language or "en-US")
+    prompt = DEBRIEF_PROMPT.replace("{language_instruction}", lang).replace("{qa_pairs}", qa_text)
     messages = [
         {"role": "system", "content": DEBRIEF_SYSTEM_PROMPT},
         {"role": "user", "content": prompt},
     ]
 
     try:
-        # Multilingual responses (DE/FR) are ~2x longer than EN — needs more headroom
-        raw = chat(messages, max_tokens=3500)
+        raw = chat(client, MODEL, messages, max_tokens=4000)
         data = extract_json(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse debrief response as JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -403,8 +455,8 @@ async def text_to_speech(request: Request):
         raise HTTPException(status_code=500, detail="ELEVENLABS_API_KEY not configured")
 
     voice_id = "onwK4e9ZLuTAKqWW03F9"  # Daniel — professional male
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
+    async with httpx.AsyncClient(timeout=30) as http:
+        resp = await http.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
             headers={"xi-api-key": api_key, "Content-Type": "application/json"},
             json={
@@ -418,6 +470,140 @@ async def text_to_speech(request: Request):
         raise HTTPException(status_code=502, detail=f"ElevenLabs error {resp.status_code}: {resp.text}")
 
     return Response(content=resp.content, media_type="audio/mpeg")
+
+
+# ── Session / Dashboard endpoints ─────────────────────────────────────────────
+
+class AnswerIn(BaseModel):
+    question_index: int
+    question:       str
+    answer:         str
+    score:          Optional[float] = None
+    feedback:       Optional[str]   = None
+    tip:            Optional[str]   = None
+    ideal_answer:   Optional[str]   = None
+    analytics:      Optional[Any]   = None
+
+
+class FaceMetricsIn(BaseModel):
+    eye_contact_pct:       Optional[int]   = None
+    head_stability_pct:    Optional[int]   = None
+    face_confidence_score: Optional[float] = None
+    face_samples_count:    Optional[int]   = None
+
+
+class SaveSessionRequest(BaseModel):
+    user_id:          str
+    role:             Optional[str]        = "the position"
+    difficulty:       Optional[str]        = "Mid"
+    interview_type:   Optional[str]        = "full"
+    overall_score:    Optional[float]      = None
+    duration_seconds: Optional[int]        = 0
+    summary:          Optional[str]        = None
+    top_strength:     Optional[str]        = None
+    top_improvement:  Optional[str]        = None
+    answers:          List[AnswerIn]       = []
+    language:         Optional[str]        = "en-US"
+    company_name:     Optional[str]        = None
+    candidate_name:   Optional[str]        = None
+    ai_score:         Optional[float]      = None
+    ai_verdict:       Optional[str]        = None
+    face_metrics:     Optional[FaceMetricsIn] = None
+
+
+@app.post("/sessions", status_code=201)
+def create_session(req: SaveSessionRequest):
+    try:
+        upsert_user(req.user_id)
+        fm = req.face_metrics or FaceMetricsIn()
+        session_id = save_session(
+            user_id               = req.user_id,
+            role                  = req.role,
+            difficulty            = req.difficulty,
+            interview_type        = req.interview_type,
+            overall_score         = req.overall_score,
+            duration_seconds      = req.duration_seconds,
+            summary               = req.summary,
+            top_strength          = req.top_strength,
+            top_improvement       = req.top_improvement,
+            answers               = [a.model_dump() for a in req.answers],
+            language              = req.language,
+            company_name          = req.company_name,
+            candidate_name        = req.candidate_name,
+            ai_score              = req.ai_score,
+            ai_verdict            = req.ai_verdict,
+            eye_contact_pct       = fm.eye_contact_pct,
+            head_stability_pct    = fm.head_stability_pct,
+            face_confidence_score = fm.face_confidence_score,
+            face_samples_count    = fm.face_samples_count,
+        )
+        return {"session_id": session_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sessions")
+def list_sessions(user_id: str):
+    try:
+        sessions = get_sessions(user_id)
+        for s in sessions:
+            if s.get("created_at"):
+                s["created_at"] = s["created_at"].isoformat()
+        return {"sessions": sessions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sessions/filler-stats")
+def filler_stats(user_id: str):
+    """Aggregate top filler words across all answers for a user."""
+    try:
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT a.filler_counts
+                    FROM answers a
+                    JOIN sessions s ON a.session_id = s.id
+                    WHERE s.user_id = %s AND a.filler_counts IS NOT NULL
+                """, (user_id,))
+                rows = cur.fetchall()
+        finally:
+            conn.close()
+
+        totals = {}
+        for (fc,) in rows:
+            if fc:
+                for word, count in (fc if isinstance(fc, dict) else {}).items():
+                    totals[word] = totals.get(word, 0) + int(count)
+
+        top = sorted(totals.items(), key=lambda x: x[1], reverse=True)[:8]
+        return {"fillers": [{"word": w, "count": c} for w, c in top]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/sessions/{session_id}")
+def session_detail(session_id: int, user_id: str):
+    try:
+        data = get_session_detail(session_id, user_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if data.get("created_at"):
+            data["created_at"] = data["created_at"].isoformat()
+        return data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/sessions/{session_id}")
+def remove_session(session_id: int, user_id: str):
+    deleted = delete_session(session_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"deleted": True}
 
 
 @app.get("/health")

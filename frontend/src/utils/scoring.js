@@ -1,4 +1,4 @@
-// src/utils/scoring.js
+// Shared scoring helpers used across Dashboard, Sessions, and Debrief.
 
 // Helper: STAR keyword groups per language
 const STAR_GROUPS = {
@@ -245,9 +245,53 @@ export function scoreAllAnswers(answers, selectedLanguage = null) {
     verdict = "Rejected — keep practicing";
   }
 
-  return {
-    finalScore,
-    verdict,
-    detailed,
-  };
+  const STAR_KEYWORDS  = ['situation', 'task', 'action', 'result', 'achieved', 'implemented', 'led', 'delivered']
+  const VAGUE_PHRASES  = ['i think', 'maybe', 'sort of', 'kind of', 'i guess', 'um', 'uh']
+  const MAX_PER_ANSWER = 20
+
+  const detailed = answers.map(answer => {
+    const text  = (answer || '').trim().toLowerCase()
+    const words = text.split(/\s+/).filter(Boolean)
+    const wc    = words.length
+    const tips  = []
+    let score   = 0
+
+    // Length (0-8 pts)
+    if (wc >= 80)       score += 8
+    else if (wc >= 50)  score += 6
+    else if (wc >= 30)  score += 4
+    else if (wc >= 10)  score += 2
+    else                tips.push('Give a more detailed answer (aim for 50+ words).')
+
+    // STAR keywords (0-7 pts)
+    const starHits = STAR_KEYWORDS.filter(k => text.includes(k)).length
+    score += Math.min(starHits * 1, 7)
+    if (starHits < 2) tips.push('Try using the STAR method: Situation, Task, Action, Result.')
+
+    // Specificity — numbers/percentages (0-3 pts)
+    const hasNumbers = /\d/.test(text)
+    if (hasNumbers) { score += 3 }
+    else            { tips.push('Add specific numbers or outcomes to strengthen your answer.') }
+
+    // Vague language penalty
+    const vagueHits = VAGUE_PHRASES.filter(p => text.includes(p)).length
+    score = Math.max(0, score - vagueHits)
+    if (vagueHits >= 2) tips.push('Avoid vague phrases like "I think" or "sort of" — be direct and confident.')
+
+    if (tips.length === 0) tips.push('Good answer — clear, specific, and well-structured.')
+
+    return { score: Math.min(score, MAX_PER_ANSWER), tips }
+  })
+
+  const total      = detailed.reduce((sum, d) => sum + d.score, 0)
+  const maxPossible = detailed.length * MAX_PER_ANSWER
+  const finalScore = Math.round((total / maxPossible) * 100)
+
+  const verdict =
+    finalScore >= 80 ? 'Excellent — interview-ready performance!' :
+    finalScore >= 60 ? 'Good — a few areas to sharpen.' :
+    finalScore >= 40 ? 'Developing — keep practising structure and specifics.' :
+                       'Needs work — focus on detail and the STAR method.'
+
+  return { finalScore, verdict, detailed }
 }

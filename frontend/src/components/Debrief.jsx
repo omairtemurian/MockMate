@@ -10,10 +10,10 @@ import {
 } from "recharts";
 import { wpmColor, durationLabel } from "../utils/speechAnalytics";
 import { saveSession } from "../utils/history";
+import { saveSessionToDB } from '../utils/api'
 import RetryModal from "./RetryModal";
 import { scoreAllAnswers } from "../utils/scoring";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+import { BACKEND_URL } from "../utils/config";
 
 function BgOrbs() {
   return (
@@ -595,93 +595,42 @@ function BodyLanguageCard({ metrics }) {
   const headPct = metrics.headStabilityPct;
   const conf = metrics.confidenceScore;
 
-  const eyeColor =
-    eyePct >= 70
-      ? "bg-emerald-500"
-      : eyePct >= 40
-        ? "bg-amber-400"
-        : "bg-red-500";
-  const headColor =
-    headPct >= 70
-      ? "bg-emerald-500"
-      : headPct >= 40
-        ? "bg-amber-400"
-        : "bg-red-500";
-  const confColor =
-    conf >= 7
-      ? "text-emerald-400"
-      : conf >= 4
-        ? "text-amber-400"
-        : "text-red-400";
-
-  const tip =
-    eyePct < 50
-      ? `Try to keep your eyes on the camera — you maintained eye contact only ${eyePct}% of the time.`
-      : headPct < 50
-        ? `Work on keeping your head still and upright — steady posture reads as more confident.`
-        : `Strong body language overall — consistent eye contact and stable posture.`;
+  const eyeColor = eyePct >= 70 ? "bg-emerald-500" : eyePct >= 40 ? "bg-amber-400" : "bg-red-500";
+  const headColor = headPct >= 70 ? "bg-emerald-500" : headPct >= 40 ? "bg-amber-400" : "bg-red-500";
+  const confColor = conf >= 7 ? "text-emerald-400" : conf >= 4 ? "text-amber-400" : "text-red-400";
+  const tip = eyePct < 50
+    ? `Try to keep your eyes on the camera — you maintained eye contact only ${eyePct}% of the time.`
+    : headPct < 50
+      ? `Work on keeping your head still and upright — steady posture reads as more confident.`
+      : `Strong body language overall — consistent eye contact and stable posture.`;
 
   return (
-    <div
-      className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up"
-      style={{ animationDelay: "0.12s" }}
-    >
+    <div className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up" style={{ animationDelay: "0.12s" }}>
       <div className="flex items-center justify-between">
         <p className="text-white font-bold text-lg">👁 Body Language</p>
-        <span className={`text-2xl font-black ${confColor}`}>
-          {conf.toFixed(1)}
-          <span className="text-slate-600 text-sm font-normal">/10</span>
-        </span>
+        <span className={`text-2xl font-black ${confColor}`}>{conf.toFixed(1)}<span className="text-slate-600 text-sm font-normal">/10</span></span>
       </div>
       <div className="space-y-3">
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span className="text-slate-400 font-semibold">Eye Contact</span>
-            <span
-              className={
-                eyePct >= 70
-                  ? "text-emerald-400"
-                  : eyePct >= 40
-                    ? "text-amber-400"
-                    : "text-red-400"
-              }
-            >
-              {eyePct}%
-            </span>
+            <span className={eyePct >= 70 ? "text-emerald-400" : eyePct >= 40 ? "text-amber-400" : "text-red-400"}>{eyePct}%</span>
           </div>
           <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${eyeColor}`}
-              style={{ width: `${eyePct}%` }}
-            />
+            <div className={`h-full rounded-full transition-all duration-700 ${eyeColor}`} style={{ width: `${eyePct}%` }} />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span className="text-slate-400 font-semibold">Head Stability</span>
-            <span
-              className={
-                headPct >= 70
-                  ? "text-emerald-400"
-                  : headPct >= 40
-                    ? "text-amber-400"
-                    : "text-red-400"
-              }
-            >
-              {headPct}%
-            </span>
+            <span className={headPct >= 70 ? "text-emerald-400" : headPct >= 40 ? "text-amber-400" : "text-red-400"}>{headPct}%</span>
           </div>
           <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${headColor}`}
-              style={{ width: `${headPct}%` }}
-            />
+            <div className={`h-full rounded-full transition-all duration-700 ${headColor}`} style={{ width: `${headPct}%` }} />
           </div>
         </div>
       </div>
-      <p className="text-slate-400 text-sm leading-relaxed border-t border-slate-700/40 pt-3">
-        {tip}
-      </p>
+      <p className="text-slate-400 text-sm leading-relaxed border-t border-slate-700/40 pt-3">{tip}</p>
     </div>
   );
 }
@@ -690,6 +639,7 @@ export default function Debrief({
   qaPairs,
   role,
   difficulty,
+  interviewType,
   language = "en-US",
   duration,
   faceMetrics,
@@ -704,6 +654,7 @@ export default function Debrief({
   const [retryQ, setRetryQ] = useState(null);
   const debriefRef = useRef(null);
   const shareCardRef = useRef(null);
+  const savedToDB = useRef(false);
 
   // AI Scoring Module (client-side scoring)
   // Determine selected interview language (convert "en-US" → "en")
@@ -720,10 +671,9 @@ export default function Debrief({
     const fetchDebrief = async () => {
       try {
         const cleanPairs = qaPairs.map(({ question, answer }) => ({
-          question,
-          answer,
-        }));
-
+          question: question || '',
+          answer: answer || '',
+        })).filter(p => p.question);
         const res = await fetch(`${BACKEND_URL}/debrief`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -745,6 +695,16 @@ export default function Debrief({
           answerCount: data.answers?.length || qaPairs.length,
           duration: duration || 0,
         });
+        // Also persist to PostgreSQL (fire-and-forget — won't block the UI)
+        if (!savedToDB.current) {
+          savedToDB.current = true;
+          saveSessionToDB(data, qaPairs, role, difficulty, interviewType, duration, {
+            faceMetrics:   faceMetrics,
+            language:      language,
+            aiScore:       scoring.finalScore,
+            aiVerdict:     scoring.verdict,
+          });
+        }
       } catch {
         setError(
           "Something went wrong generating your feedback. Please try again.",
