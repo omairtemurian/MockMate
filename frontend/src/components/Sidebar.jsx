@@ -64,7 +64,7 @@ function PlanBadge({ plan, collapsed, onUpgradeClick }) {
 
 export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgradeClick }) {
   const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
   const initial = user?.name?.[0]?.toUpperCase() || 'U'
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -141,18 +141,6 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
 
       {/* Bottom section */}
       <div className={`border-t border-slate-200 dark:border-slate-700/40 ${collapsed ? 'p-2' : 'p-3'}`}>
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className={`w-full flex items-center gap-3 rounded-xl text-sm font-semibold transition-all duration-200 mb-2 ${
-            collapsed ? 'justify-center px-0 py-2.5' : 'px-4 py-2.5'
-          } text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent`}
-        >
-          <span className="text-base flex-shrink-0">{theme === 'dark' ? '☀️' : '🌙'}</span>
-          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
-
         <PlanBadge plan={user?.plan} collapsed={collapsed} onUpgradeClick={onUpgradeClick} />
 
         {/* User area — clicking opens dropdown */}
