@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { BACKEND_URL } from './utils/config'
 import Auth         from './components/Auth'
 import Sidebar      from './components/Sidebar'
@@ -70,7 +71,7 @@ function AppInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
       </div>
     )
@@ -108,7 +109,7 @@ function AppInner() {
   const sidebarViews = ['dashboard', 'sessions', 'landing', 'cv', 'settings']
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {sidebarViews.includes(view) && (
         <Sidebar
           activeTab={view}
@@ -165,10 +166,12 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <AppInner />
-      </AuthProvider>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <AppInner />
+        </AuthProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   )
 }

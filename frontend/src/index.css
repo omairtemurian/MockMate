@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-white antialiased;
+    @apply bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white antialiased;
   }
 }
 
@@ -83,14 +83,20 @@
 
 /* ── Glass utility ── */
 .glass {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+html.dark .glass {
+  background: rgba(15, 23, 42, 0.65);
+}
 .glass-light {
-  background: rgba(30, 41, 59, 0.55);
+  background: rgba(248, 250, 252, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+html.dark .glass-light {
+  background: rgba(30, 41, 59, 0.55);
 }
 
 /* ── Gradient text ── */

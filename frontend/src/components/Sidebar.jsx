@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 function PanelIcon() {
   return (
@@ -20,7 +21,7 @@ function NavItem({ icon, label, active, collapsed, onClick }) {
       } ${
         active
           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
-          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
       }`}
     >
       <span className="text-base flex-shrink-0">{icon}</span>
@@ -62,6 +63,7 @@ function PlanBadge({ plan, collapsed, onUpgradeClick }) {
 
 export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgradeClick }) {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const initial = user?.name?.[0]?.toUpperCase() || 'U'
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -82,8 +84,8 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
       className="fixed left-0 top-0 bottom-0 flex flex-col z-40 transition-all duration-300"
       style={{
         width: collapsed ? '4rem' : '15rem',
-        background: 'rgba(2,6,23,0.95)',
-        borderRight: '1px solid rgba(51,65,85,0.4)',
+        background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(255,255,255,0.98)',
+        borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
         backdropFilter: 'blur(20px)',
       }}
     >
@@ -91,12 +93,12 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
       <button
         onClick={onToggle}
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute top-4 -right-8 w-8 h-8 flex items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-200 transition-colors z-50"
+        className="absolute top-4 -right-8 w-8 h-8 flex items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors z-50"
         style={{
-          background: 'rgba(2,6,23,0.95)',
-          borderTop: '1px solid rgba(51,65,85,0.4)',
-          borderRight: '1px solid rgba(51,65,85,0.4)',
-          borderBottom: '1px solid rgba(51,65,85,0.4)',
+          background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(255,255,255,0.98)',
+          borderTop: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
+          borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
+          borderBottom: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -105,22 +107,22 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
 
       {/* Logo */}
       {collapsed ? (
-        <div className="flex flex-col items-center py-4 border-b border-slate-700/40">
+        <div className="flex flex-col items-center py-4 border-b border-slate-200 dark:border-slate-700/40">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
             <span className="text-white text-sm font-black">M</span>
           </div>
         </div>
       ) : (
-        <div className="px-4 py-4 border-b border-slate-700/40 flex items-center gap-2">
+        <div className="px-4 py-4 border-b border-slate-200 dark:border-slate-700/40 flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 flex-shrink-0">
             <span className="text-white text-sm font-black">M</span>
           </div>
           <div>
             <h1 className="text-lg font-black leading-none">
-              <span className="text-white">Mock</span>
+              <span className="text-slate-900 dark:text-white">Mock</span>
               <span className="gradient-text">Mate</span>
             </h1>
-            <p className="text-slate-600 text-xs">AI Interview Coach</p>
+            <p className="text-slate-400 dark:text-slate-600 text-xs">AI Interview Coach</p>
           </div>
         </div>
       )}
@@ -128,7 +130,7 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
       {/* Navigation */}
       <nav className={`flex-1 py-3 space-y-1 overflow-y-auto ${collapsed ? 'px-2' : 'px-3'}`}>
         {!collapsed && (
-          <p className="text-slate-600 text-xs font-bold uppercase tracking-widest px-4 pt-1 pb-1">Menu</p>
+          <p className="text-slate-400 dark:text-slate-600 text-xs font-bold uppercase tracking-widest px-4 pt-1 pb-1">Menu</p>
         )}
         <NavItem icon="🎙" label="Practice"   active={activeTab === 'landing'}   collapsed={collapsed} onClick={() => onTab('landing')} />
         <NavItem icon="📊" label="Dashboard"  active={activeTab === 'dashboard'} collapsed={collapsed} onClick={() => onTab('dashboard')} />
@@ -137,7 +139,19 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
       </nav>
 
       {/* Bottom section */}
-      <div className={`border-t border-slate-700/40 ${collapsed ? 'p-2' : 'p-3'}`}>
+      <div className={`border-t border-slate-200 dark:border-slate-700/40 ${collapsed ? 'p-2' : 'p-3'}`}>
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className={`w-full flex items-center gap-3 rounded-xl text-sm font-semibold transition-all duration-200 mb-2 ${
+            collapsed ? 'justify-center px-0 py-2.5' : 'px-4 py-2.5'
+          } text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent`}
+        >
+          <span className="text-base flex-shrink-0">{theme === 'dark' ? '☀️' : '🌙'}</span>
+          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+
         <PlanBadge plan={user?.plan} collapsed={collapsed} onUpgradeClick={onUpgradeClick} />
 
         {/* User area — clicking opens dropdown */}
@@ -146,12 +160,12 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
           {/* Dropdown menu */}
           {menuOpen && (
             <div
-              className="absolute bottom-full mb-2 left-0 right-0 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 z-50"
-              style={{ background: 'rgba(15,23,42,0.98)', backdropFilter: 'blur(20px)' }}
+              className="absolute bottom-full mb-2 left-0 right-0 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700/50 z-50"
+              style={{ background: theme === 'dark' ? 'rgba(15,23,42,0.98)' : 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)' }}
             >
               <button
                 onClick={() => { setMenuOpen(false); onTab('settings') }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/8 transition-colors text-sm font-medium group"
+                className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/8 transition-colors text-sm font-medium group"
               >
                 <svg className="w-4 h-4 flex-shrink-0 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -159,10 +173,10 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
                 </svg>
                 Profile
               </button>
-              <div className="h-px bg-slate-800/80 mx-3" />
+              <div className="h-px bg-slate-200 dark:bg-slate-800/80 mx-3" />
               <button
                 onClick={() => { setMenuOpen(false); logout() }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-red-400 hover:bg-red-500/8 transition-colors text-sm font-medium group"
+                className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-300 hover:text-red-400 hover:bg-red-500/8 transition-colors text-sm font-medium group"
               >
                 <svg className="w-4 h-4 flex-shrink-0 text-slate-500 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -177,8 +191,8 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
           <button
             onClick={() => setMenuOpen(v => !v)}
             title={collapsed ? 'Account menu' : undefined}
-            className={`w-full flex items-center gap-3 rounded-xl hover:bg-slate-800/60 border transition-colors ${
-              menuOpen ? 'border-slate-600/60 bg-slate-800/40' : 'border-slate-700/40'
+            className={`w-full flex items-center gap-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 border transition-colors ${
+              menuOpen ? 'border-slate-300 dark:border-slate-600/60 bg-slate-100/80 dark:bg-slate-800/40' : 'border-slate-200 dark:border-slate-700/40'
             } ${collapsed ? 'justify-center p-2' : 'px-3 py-2.5'}`}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
@@ -187,10 +201,10 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
             {!collapsed && (
               <>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-slate-200 text-xs font-semibold truncate">{user?.name}</p>
-                  <p className="text-slate-500 text-xs truncate">{user?.email}</p>
+                  <p className="text-slate-900 dark:text-slate-200 text-xs font-semibold truncate">{user?.name}</p>
+                  <p className="text-slate-500 dark:text-slate-500 text-xs truncate">{user?.email}</p>
                 </div>
-                <svg className={`w-3.5 h-3.5 text-slate-600 flex-shrink-0 transition-transform ${menuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0 transition-transform ${menuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               </>

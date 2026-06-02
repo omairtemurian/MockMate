@@ -101,11 +101,11 @@ function ProgressChart() {
   const avg = (data.reduce((s, d) => s + d.score, 0) / data.length).toFixed(1)
 
   return (
-    <div className="mt-6 glass border border-slate-700/40 rounded-3xl p-6 animate-fade-up">
+    <div className="mt-6 glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 animate-fade-up">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white font-bold">📈 Your Progress</p>
-          <p className="text-slate-500 text-xs">{data.length} sessions · avg {avg}/10</p>
+          <p className="text-slate-900 dark:text-white font-bold">📈 Your Progress</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs">{data.length} sessions · avg {avg}/10</p>
         </div>
         <span className={`text-lg font-black px-3 py-1 rounded-full ${
           parseFloat(avg) >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
@@ -152,7 +152,7 @@ function ScoreBar({ score }) {
       <div className="flex-1 bg-slate-700/60 rounded-full h-1.5">
         <div className={`${color} h-1.5 rounded-full`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs font-bold text-slate-300 w-6 text-right">{score}</span>
+      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 w-6 text-right">{score}</span>
     </div>
   )
 }
@@ -166,19 +166,19 @@ function PastSessions() {
     <div className="mt-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between glass border border-slate-700/50 rounded-2xl px-4 py-3 text-sm text-slate-300 hover:border-emerald-500/30 transition-all"
+        className="w-full flex items-center justify-between glass border border-slate-200 dark:border-slate-700/50 rounded-2xl px-4 py-3 text-sm text-slate-600 dark:text-slate-300 hover:border-emerald-500/30 transition-all"
       >
         <span className="flex items-center gap-2"><span className="text-emerald-400">🕐</span> Past Sessions ({sessions.length})</span>
-        <span className="text-slate-500 text-xs">{open ? '▲ hide' : '▼ show'}</span>
+        <span className="text-slate-400 dark:text-slate-500 text-xs">{open ? '▲ hide' : '▼ show'}</span>
       </button>
       {open && (
         <div className="mt-2 space-y-2">
           {sessions.map(s => (
-            <div key={s.id} className="glass border border-slate-700/40 rounded-2xl px-4 py-3">
+            <div key={s.id} className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <p className="text-slate-200 text-sm font-medium truncate">{s.role}</p>
-                  <p className="text-slate-500 text-xs">{s.difficulty || 'Mid'} · {new Date(s.date || s.id).toLocaleDateString()}</p>
+                  <p className="text-slate-700 dark:text-slate-200 text-sm font-medium truncate">{s.role}</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-xs">{s.difficulty || 'Mid'} · {new Date(s.date || s.id).toLocaleDateString()}</p>
                 </div>
                 <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${
                   s.overall_score >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
@@ -189,7 +189,7 @@ function PastSessions() {
             </div>
           ))}
           <button onClick={() => { clearHistory(); setSessions([]) }}
-            className="w-full text-slate-600 hover:text-red-400 text-xs py-2 transition">
+            className="w-full text-slate-400 dark:text-slate-600 hover:text-red-400 text-xs py-2 transition">
             Clear history
           </button>
         </div>
@@ -336,7 +336,7 @@ export default function Landing({ onStart }) {
   const canPractice = selectedCategory && !practiceLoading
 
   return (
-    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12 overflow-hidden">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12 overflow-hidden">
       <BgOrbs />
 
       <div className="relative z-10 w-full max-w-2xl">
@@ -344,7 +344,7 @@ export default function Landing({ onStart }) {
 
 {/* ── Language Selector ── */}
         <div className="mb-5 animate-fade-up" style={{ animationDelay: '0.03s' }}>
-          <label className="block text-slate-300 text-sm font-semibold mb-2">Interview Language</label>
+          <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">Interview Language</label>
           <div className="grid grid-cols-3 gap-2">
             {LANGUAGES.map(lang => (
               <button
@@ -353,7 +353,7 @@ export default function Landing({ onStart }) {
                 className={`py-3 rounded-2xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
                   language === lang.code
                     ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03]'
-                    : 'glass-light border border-slate-700/40 text-slate-400 hover:border-slate-600'
+                    : 'glass-light border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-600'
                 }`}
               >
                 <span className="text-lg">{lang.flag}</span>
@@ -375,18 +375,18 @@ export default function Landing({ onStart }) {
               className={`flex-1 py-3 px-4 rounded-2xl text-sm font-semibold transition-all duration-300 ${
                 tab === t.key
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                  : 'glass border border-slate-700/50 text-slate-400 hover:border-slate-600'
+                  : 'glass border border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-600'
               }`}
             >
               <div>{t.label}</div>
-              <div className={`text-xs mt-0.5 font-normal ${tab === t.key ? 'text-emerald-100/70' : 'text-slate-600'}`}>{t.desc}</div>
+              <div className={`text-xs mt-0.5 font-normal ${tab === t.key ? 'text-emerald-100/70' : 'text-slate-400 dark:text-slate-600'}`}>{t.desc}</div>
             </button>
           ))}
         </div>
 
         {/* ── Main Card ── */}
         <div
-          className="animate-fade-up glass border border-slate-700/40 rounded-3xl p-4 sm:p-7 shadow-2xl space-y-5"
+          className="animate-fade-up glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-4 sm:p-7 shadow-2xl space-y-5"
           style={{ animationDelay: '0.1s', boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 25px 50px rgba(0,0,0,0.5)' }}
         >
 
@@ -400,7 +400,7 @@ export default function Landing({ onStart }) {
                   className="w-full flex items-center justify-between text-sm text-slate-400 hover:text-slate-300 transition py-1"
                 >
                   <span className="flex items-center gap-2 font-medium"><span>📋</span> Use a job template</span>
-                  <span className="text-xs text-slate-600">{showTemplates ? '▲ hide' : '▼ show'}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-600">{showTemplates ? '▲ hide' : '▼ show'}</span>
                 </button>
                 {showTemplates && (
                   <div className="mt-2 grid grid-cols-2 gap-2">
@@ -408,7 +408,7 @@ export default function Landing({ onStart }) {
                       <button
                         key={t.label}
                         onClick={() => { setJd(t.jd); setShowTemplates(false) }}
-                        className="text-left text-xs px-3 py-2.5 glass-light border border-slate-700/40 rounded-xl text-slate-400 hover:border-emerald-500/30 hover:text-slate-300 transition-all"
+                        className="text-left text-xs px-3 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-xl text-slate-500 dark:text-slate-400 hover:border-emerald-500/30 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
                       >
                         {t.label}
                       </button>
@@ -419,11 +419,11 @@ export default function Landing({ onStart }) {
 
               {/* JD textarea */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">
                   Job Description <span className="text-emerald-400">*</span>
                 </label>
                 <textarea
-                  className="w-full h-40 bg-slate-900/70 border border-slate-700/60 rounded-2xl p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 resize-none text-sm leading-relaxed transition-all"
+                  className="w-full h-40 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 resize-none text-sm leading-relaxed transition-all"
                   placeholder="Paste the full job description here..."
                   value={jd}
                   onChange={(e) => setJd(e.target.value)}
@@ -432,41 +432,41 @@ export default function Landing({ onStart }) {
 
               {/* JD Upload */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">
                   Upload Job Description
-                  <span className="ml-2 text-slate-500 font-normal text-xs">(optional — PDF, DOCX, or TXT)</span>
+                  <span className="ml-2 text-slate-400 dark:text-slate-500 font-normal text-xs">(optional — PDF, DOCX, or TXT)</span>
                 </label>
                 {!jdFile ? (
                   <div
                     onClick={() => jdFileInputRef.current?.click()}
-                    className="border-2 border-dashed rounded-2xl p-4 flex items-center gap-3 cursor-pointer transition-all border-slate-700/60 hover:border-emerald-500/40 hover:bg-slate-800/40"
+                    className="border-2 border-dashed rounded-2xl p-4 flex items-center gap-3 cursor-pointer transition-all border-slate-200 dark:border-slate-700/60 hover:border-emerald-500/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/40"
                   >
                     <div className="text-slate-500"><UploadIcon /></div>
                     <div>
-                      <p className="text-slate-400 text-sm"><span className="text-emerald-400 font-semibold">Click to upload JD</span></p>
-                      <p className="text-slate-600 text-xs">PDF · DOCX · TXT</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm"><span className="text-emerald-400 font-semibold">Click to upload JD</span></p>
+                      <p className="text-slate-400 dark:text-slate-600 text-xs">PDF · DOCX · TXT</p>
                     </div>
                     <input ref={jdFileInputRef} type="file" accept=".pdf,.docx,.txt" className="hidden"
                       onChange={(e) => handleJdFileSelect(e.target.files[0])} />
                   </div>
                 ) : (
                   <div className={`border rounded-2xl px-4 py-3 flex items-center gap-3 transition-all ${
-                    jdLoading ? 'border-slate-600/50 bg-slate-800/30' : 'border-emerald-500/30 bg-emerald-500/8'
+                    jdLoading ? 'border-slate-200 dark:border-slate-600/50 bg-slate-100/40 dark:bg-slate-800/30' : 'border-emerald-500/30 bg-emerald-500/8'
                   }`}>
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      jdLoading ? 'bg-slate-700' : 'bg-emerald-500/20 text-emerald-400'
+                      jdLoading ? 'bg-slate-200 dark:bg-slate-700' : 'bg-emerald-500/20 text-emerald-400'
                     }`}>
                       {jdLoading
-                        ? <svg className="animate-spin w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                        ? <svg className="animate-spin w-4 h-4 text-slate-500 dark:text-slate-300" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                         : <CheckIcon />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-slate-200 text-sm font-medium truncate">{jdFile.name}</p>
-                      <p className={`text-xs mt-0.5 ${jdLoading ? 'text-slate-400' : 'text-emerald-400'}`}>
+                      <p className="text-slate-700 dark:text-slate-200 text-sm font-medium truncate">{jdFile.name}</p>
+                      <p className={`text-xs mt-0.5 ${jdLoading ? 'text-slate-500 dark:text-slate-400' : 'text-emerald-400'}`}>
                         {jdLoading ? 'Extracting...' : '✓ Job description extracted'}
                       </p>
                     </div>
-                    <button onClick={clearJDFile} className="text-slate-600 hover:text-slate-300 transition"><XIcon /></button>
+                    <button onClick={clearJDFile} className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition"><XIcon /></button>
                   </div>
                 )}
                 {jdError && <p className="mt-2 text-red-400 text-xs">{jdError}</p>}
@@ -474,13 +474,13 @@ export default function Landing({ onStart }) {
 
               {/* Company name */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">
                   Company Name
-                  <span className="ml-2 text-slate-500 font-normal text-xs">(optional — tailors questions to company culture)</span>
+                  <span className="ml-2 text-slate-400 dark:text-slate-500 font-normal text-xs">(optional — tailors questions to company culture)</span>
                 </label>
                 <input
                   type="text"
-                  className="w-full bg-slate-900/70 border border-slate-700/60 rounded-2xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                  className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
                   placeholder="e.g. Google, Amazon, Stripe..."
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
@@ -489,9 +489,9 @@ export default function Landing({ onStart }) {
 
               {/* CV Upload */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">
                   Your CV / Resume
-                  <span className="ml-2 text-slate-500 font-normal text-xs">(optional — personalises questions)</span>
+                  <span className="ml-2 text-slate-400 dark:text-slate-500 font-normal text-xs">(optional — personalises questions)</span>
                 </label>
                 {!cvFile ? (
                   <div
@@ -500,32 +500,32 @@ export default function Landing({ onStart }) {
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center gap-2 cursor-pointer transition-all ${
-                      isDragging ? 'border-emerald-400 bg-emerald-500/10 scale-[1.01]' : 'border-slate-700/60 hover:border-emerald-500/40 hover:bg-slate-800/40'
+                      isDragging ? 'border-emerald-400 bg-emerald-500/10 scale-[1.01]' : 'border-slate-200 dark:border-slate-700/60 hover:border-emerald-500/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/40'
                     }`}
                   >
                     <div className={`transition-all ${isDragging ? 'text-emerald-400 scale-110' : 'text-slate-500'}`}><UploadIcon /></div>
-                    <p className="text-slate-400 text-sm"><span className="text-emerald-400 font-semibold">Click to upload</span> or drag &amp; drop</p>
-                    <p className="text-slate-600 text-xs">PDF · DOCX · TXT</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm"><span className="text-emerald-400 font-semibold">Click to upload</span> or drag &amp; drop</p>
+                    <p className="text-slate-400 dark:text-slate-600 text-xs">PDF · DOCX · TXT</p>
                     <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={(e) => handleFileSelect(e.target.files[0])} />
                   </div>
                 ) : (
                   <div className={`border rounded-2xl px-4 py-3 flex items-center gap-3 transition-all ${
-                    cvLoading ? 'border-slate-600/50 bg-slate-800/30' : cvText ? 'border-emerald-500/30 bg-emerald-500/8' : 'border-red-500/30 bg-red-500/8'
+                    cvLoading ? 'border-slate-200 dark:border-slate-600/50 bg-slate-100/40 dark:bg-slate-800/30' : cvText ? 'border-emerald-500/30 bg-emerald-500/8' : 'border-red-500/30 bg-red-500/8'
                   }`}>
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      cvLoading ? 'bg-slate-700' : cvText ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                      cvLoading ? 'bg-slate-200 dark:bg-slate-700' : cvText ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                     }`}>
                       {cvLoading
-                        ? <svg className="animate-spin w-4 h-4 text-slate-300" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                        ? <svg className="animate-spin w-4 h-4 text-slate-500 dark:text-slate-300" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                         : cvText ? <CheckIcon /> : <XIcon />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-slate-200 text-sm font-medium truncate">{cvFile.name}</p>
-                      <p className={`text-xs mt-0.5 ${cvLoading ? 'text-slate-400' : cvText ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <p className="text-slate-700 dark:text-slate-200 text-sm font-medium truncate">{cvFile.name}</p>
+                      <p className={`text-xs mt-0.5 ${cvLoading ? 'text-slate-500 dark:text-slate-400' : cvText ? 'text-emerald-400' : 'text-red-400'}`}>
                         {cvLoading ? 'Extracting...' : cvText ? (cvFromSaved ? '✓ Using saved CV — questions personalised' : '✓ CV parsed — questions personalised') : 'Failed to read'}
                       </p>
                     </div>
-                    <button onClick={clearCV} className="text-slate-600 hover:text-slate-300 transition"><XIcon /></button>
+                    <button onClick={clearCV} className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition"><XIcon /></button>
                   </div>
                 )}
                 {cvError && <p className="mt-2 text-red-400 text-xs">{cvError}</p>}
@@ -533,7 +533,7 @@ export default function Landing({ onStart }) {
 
               {/* Interview type */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">Interview Type</label>
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">Interview Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {INTERVIEW_TYPES.map(t => (
                     <button
@@ -542,11 +542,11 @@ export default function Landing({ onStart }) {
                       className={`py-3 px-3 rounded-2xl text-xs font-semibold text-left transition-all ${
                         interviewType === t.value
                           ? 'bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/40 text-emerald-300'
-                          : 'glass-light border border-slate-700/40 text-slate-400 hover:border-slate-600'
+                          : 'glass-light border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-600'
                       }`}
                     >
                       <div className="font-bold mb-0.5">{t.label}</div>
-                      <div className={`text-xs font-normal ${interviewType === t.value ? 'text-emerald-400/70' : 'text-slate-600'}`}>{t.desc}</div>
+                      <div className={`text-xs font-normal ${interviewType === t.value ? 'text-emerald-400/70' : 'text-slate-400 dark:text-slate-600'}`}>{t.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -554,14 +554,14 @@ export default function Landing({ onStart }) {
 
               {/* Difficulty */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">Interview Level</label>
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">Interview Level</label>
                 <div className="grid grid-cols-3 gap-2">
                   {['Junior', 'Mid', 'Senior'].map(d => (
                     <button key={d} onClick={() => setDifficulty(d)}
                       className={`py-3 rounded-2xl text-sm font-semibold transition-all duration-300 flex flex-col items-center gap-1 ${
                         difficulty === d
                           ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03]'
-                          : 'glass-light border border-slate-700/40 text-slate-400 hover:border-slate-600'
+                          : 'glass-light border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-600'
                       }`}
                     >
                       <span className="text-lg">{DIFFICULTY_EMOJI[d]}</span>
@@ -569,7 +569,7 @@ export default function Landing({ onStart }) {
                     </button>
                   ))}
                 </div>
-                <p className="text-slate-500 text-xs mt-1.5">{DIFFICULTY_INFO[difficulty]}</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mt-1.5">{DIFFICULTY_INFO[difficulty]}</p>
               </div>
 
               {error && <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-400 text-sm">{error}</div>}
@@ -580,7 +580,7 @@ export default function Landing({ onStart }) {
                 className={`w-full font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 text-base ${
                   canStart
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02] animate-glow-em'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700/50'
                 }`}
               >
                 {loading ? (
@@ -598,7 +598,7 @@ export default function Landing({ onStart }) {
           {tab === 'practice' && (
             <>
               <div>
-                <p className="text-slate-300 text-sm font-semibold mb-3">Choose a Topic</p>
+                <p className="text-slate-600 dark:text-slate-300 text-sm font-semibold mb-3">Choose a Topic</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {CATEGORIES.map(c => (
                     <button
@@ -607,7 +607,7 @@ export default function Landing({ onStart }) {
                       className={`py-3 px-3 rounded-2xl text-xs font-semibold text-left transition-all duration-200 ${
                         selectedCategory === c.value
                           ? 'bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/40 text-emerald-300 scale-[1.03]'
-                          : 'glass-light border border-slate-700/40 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+                          : 'glass-light border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                       }`}
                     >
                       <span className="text-lg mr-1">{c.emoji}</span>
@@ -619,14 +619,14 @@ export default function Landing({ onStart }) {
 
               {/* Difficulty */}
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">Difficulty Level</label>
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-2">Difficulty Level</label>
                 <div className="grid grid-cols-3 gap-2">
                   {['Junior', 'Mid', 'Senior'].map(d => (
                     <button key={d} onClick={() => setDifficulty(d)}
                       className={`py-3 rounded-2xl text-sm font-semibold transition-all duration-300 flex flex-col items-center gap-1 ${
                         difficulty === d
                           ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03]'
-                          : 'glass-light border border-slate-700/40 text-slate-400 hover:border-slate-600'
+                          : 'glass-light border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-600'
                       }`}
                     >
                       <span className="text-lg">{DIFFICULTY_EMOJI[d]}</span>
@@ -644,7 +644,7 @@ export default function Landing({ onStart }) {
                 className={`w-full font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 text-base ${
                   canPractice
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02] animate-glow-em'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700/50'
                 }`}
               >
                 {practiceLoading ? (
@@ -659,7 +659,7 @@ export default function Landing({ onStart }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-slate-600 text-xs mt-5">
+        <p className="text-center text-slate-400 dark:text-slate-600 text-xs mt-5">
           Uses your browser's microphone &amp; built-in speech synthesis · Works best in Chrome
         </p>
 
