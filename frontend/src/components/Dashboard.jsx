@@ -10,6 +10,7 @@ import {
   scoreBg, scoreColor, scoreHex, aiColor, aiBg,
   formatDate, formatShort, difficultyBadge, typeBadge, langInfo, avgArr,
 } from '../utils/scoring'
+import { IconList, IconStar, IconTarget, IconTrophy, IconFlame, IconGlobe, IconBarChart, IconMic } from '../utils/icons'
 
 // ── Practice streak ───────────────────────────────────────────────────────────
 function calcStreak(sessions) {
@@ -69,12 +70,12 @@ const TOOLTIP_STYLE = {
 function StatCard({ icon, label, value, sub, color = 'text-slate-900 dark:text-white' }) {
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5 space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-base">{icon}</span>
-        <span className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">{label}</span>
+      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        {icon}
+        <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
       </div>
       <p className={`text-2xl font-black ${color}`}>{value}</p>
-      {sub && <p className="text-slate-600 dark:text-slate-400 text-xs">{sub}</p>}
+      {sub && <p className="text-slate-500 dark:text-slate-400 text-xs">{sub}</p>}
     </div>
   )
 }
@@ -174,7 +175,7 @@ function SkillBenchmark({ sessions }) {
 function BreakdownCard({ title, icon, rows }) {
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
-      <p className="text-slate-900 dark:text-white font-bold text-sm mb-3">{icon} {title}</p>
+      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-3">{icon}<span>{title}</span></div>
       {rows.length === 0 ? (
         <p className="text-slate-600 dark:text-slate-400 text-xs">No data yet</p>
       ) : (
@@ -417,7 +418,7 @@ export default function Dashboard({ onNavigate }) {
               onClick={() => onNavigate('landing')}
               className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-5 py-2.5 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/30 whitespace-nowrap text-sm"
             >
-              <span>🎙</span> Start Interview
+              <IconMic className="w-4 h-4" /> Start Interview
             </button>
           </div>
         </div>
@@ -431,7 +432,7 @@ export default function Dashboard({ onNavigate }) {
           </div>
         ) : sessions.length === 0 ? (
           <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-12 flex flex-col items-center gap-4 text-center">
-            <span className="text-5xl">🎙</span>
+            <IconMic className="w-12 h-12 text-emerald-500/60" />
             <p className="text-slate-900 dark:text-white font-bold text-lg">No interviews yet</p>
             <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
             <button onClick={() => onNavigate('landing')} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-6 py-2.5 rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-500/30 text-sm">
@@ -442,17 +443,17 @@ export default function Dashboard({ onNavigate }) {
           <>
             {/* ── Step 1: Stats (6 cards) ── */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <StatCard icon="📋" label="Sessions"    value={sessions.length}  sub={thisMonth ? `${thisMonth} this month · ${durationLabel(totalSeconds)}` : durationLabel(totalSeconds)} />
-              <StatCard icon="⭐" label="Avg Score"   value={avgScore ? `${avgScore.toFixed(1)}/10` : '–'} sub="Content quality" color={avgScore ? scoreColor(avgScore) : 'text-slate-500'} />
-              <StatCard icon="🤖" label="Avg AI"      value={avgAI != null ? `${avgAI}` : '–'} sub="/100 overall" color={avgAI != null ? aiColor(avgAI) : 'text-slate-500'} />
+              <StatCard icon={<IconList className="w-4 h-4" />}    label="Sessions"      value={sessions.length}  sub={thisMonth ? `${thisMonth} this month · ${durationLabel(totalSeconds)}` : durationLabel(totalSeconds)} />
+              <StatCard icon={<IconStar className="w-4 h-4" />}    label="Avg Score"     value={avgScore ? `${avgScore.toFixed(1)}/10` : '–'} sub="Content quality" color={avgScore ? scoreColor(avgScore) : 'text-slate-500'} />
+              <StatCard icon={<IconTarget className="w-4 h-4" />}  label="Avg AI"        value={avgAI != null ? `${avgAI}` : '–'} sub="/100 overall" color={avgAI != null ? aiColor(avgAI) : 'text-slate-500'} />
               <StatCard
-                icon="🏆" label="Best Session"
+                icon={<IconTrophy className="w-4 h-4" />} label="Best Session"
                 value={bestSession ? parseFloat(bestSession.overall_score).toFixed(1) : '–'}
                 sub={bestSession ? (bestSession.role?.split('–')[0]?.trim() || 'Interview') : 'No data yet'}
                 color="text-amber-400"
               />
               <StatCard
-                icon="🔥" label="Streak"
+                icon={<IconFlame className="w-4 h-4" />} label="Streak"
                 value={streak ? `${streak}d` : '–'}
                 sub={streak ? `${streak} day${streak > 1 ? 's' : ''} in a row` : 'Practice daily!'}
                 color={streak >= 3 ? 'text-orange-400' : streak >= 1 ? 'text-yellow-400' : 'text-slate-500'}
@@ -470,9 +471,9 @@ export default function Dashboard({ onNavigate }) {
 
             {/* ── Step 2: Breakdowns (language / type / difficulty) ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <BreakdownCard title="By Language"   icon="🌐" rows={byLanguage} />
-              <BreakdownCard title="By Type"       icon="🎯" rows={byType} />
-              <BreakdownCard title="By Difficulty" icon="📊" rows={byDifficulty} />
+              <BreakdownCard title="By Language"   icon={<IconGlobe className="w-4 h-4" />}    rows={byLanguage} />
+              <BreakdownCard title="By Type"       icon={<IconTarget className="w-4 h-4" />}   rows={byType} />
+              <BreakdownCard title="By Difficulty" icon={<IconBarChart className="w-4 h-4" />} rows={byDifficulty} />
             </div>
 
             {/* ── Step 4: Filler words ── */}

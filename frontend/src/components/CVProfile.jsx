@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCVProfile, uploadCVProfile } from '../utils/api'
+import { IconUser, IconZap, IconBriefcase, IconGraduation, IconGlobe, IconAward, IconMail, IconPhone, IconMapPin, IconLink } from '../utils/icons'
 
 function BgOrbs() {
   return (
@@ -36,7 +37,7 @@ function SectionCard({ title, icon, delay = 0, children }) {
       className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 animate-fade-up"
       style={{ animationDelay: `${delay}s` }}
     >
-      <p className="text-slate-900 dark:text-white font-bold text-base mb-4">{icon} {title}</p>
+      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-base mb-4">{icon}<span>{title}</span></div>
       {children}
     </div>
   )
@@ -219,10 +220,10 @@ export default function CVProfile() {
                 )}
                 {/* Contact pills */}
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <ContactPill icon="📧" text={p.contact?.email} />
-                  <ContactPill icon="📱" text={p.contact?.phone} />
-                  <ContactPill icon="📍" text={p.contact?.location} />
-                  <ContactPill icon="🔗" text={p.contact?.linkedin} />
+                  <ContactPill icon={<IconMail className="w-3.5 h-3.5" />}   text={p.contact?.email} />
+                  <ContactPill icon={<IconPhone className="w-3.5 h-3.5" />}  text={p.contact?.phone} />
+                  <ContactPill icon={<IconMapPin className="w-3.5 h-3.5" />} text={p.contact?.location} />
+                  <ContactPill icon={<IconLink className="w-3.5 h-3.5" />}   text={p.contact?.linkedin} />
                 </div>
               </div>
             </div>
@@ -263,14 +264,14 @@ export default function CVProfile() {
 
         {/* ── Profile Summary ── */}
         {p.profile && (
-          <SectionCard title="Profile" icon="👤" delay={0.05}>
+          <SectionCard title="Profile" icon={<IconUser className="w-4 h-4" />} delay={0.05}>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{p.profile}</p>
           </SectionCard>
         )}
 
         {/* ── Skills ── */}
         {p.skills?.length > 0 && (
-          <SectionCard title="Skills" icon="⚡" delay={0.1}>
+          <SectionCard title="Skills" icon={<IconZap className="w-4 h-4" />} delay={0.1}>
             <div className="flex flex-wrap gap-2">
               {p.skills.map((s, i) => <SkillTag key={i} name={s} idx={i} />)}
             </div>
@@ -279,7 +280,7 @@ export default function CVProfile() {
 
         {/* ── Experience ── */}
         {p.experience?.length > 0 && (
-          <SectionCard title="Experience" icon="💼" delay={0.15}>
+          <SectionCard title="Experience" icon={<IconBriefcase className="w-4 h-4" />} delay={0.15}>
             <div className="space-y-2">
               {p.experience.map((exp, i) => (
                 <ExperienceCard key={i} exp={exp} defaultOpen={i === 0} />
@@ -290,7 +291,7 @@ export default function CVProfile() {
 
         {/* ── Education ── */}
         {p.education?.length > 0 && (
-          <SectionCard title="Education" icon="🎓" delay={0.2}>
+          <SectionCard title="Education" icon={<IconGraduation className="w-4 h-4" />} delay={0.2}>
             <div className="space-y-4">
               {p.education.map((edu, i) => (
                 <div key={i} className="flex items-start gap-3">
@@ -313,7 +314,7 @@ export default function CVProfile() {
         {(p.languages?.length > 0 || p.certifications?.length > 0) && (
           <div className={`grid gap-4 ${p.languages?.length > 0 && p.certifications?.length > 0 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
             {p.languages?.length > 0 && (
-              <SectionCard title="Languages" icon="🌍" delay={0.25}>
+              <SectionCard title="Languages" icon={<IconGlobe className="w-4 h-4" />} delay={0.25}>
                 <div className="space-y-2">
                   {p.languages.map((l, i) => (
                     <p key={i} className="text-slate-600 dark:text-slate-400 text-sm">{l}</p>
@@ -322,7 +323,7 @@ export default function CVProfile() {
               </SectionCard>
             )}
             {p.certifications?.length > 0 && (
-              <SectionCard title="Certifications" icon="🏆" delay={0.3}>
+              <SectionCard title="Certifications" icon={<IconAward className="w-4 h-4" />} delay={0.3}>
                 <div className="space-y-2">
                   {p.certifications.map((c, i) => (
                     <p key={i} className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{c}</p>

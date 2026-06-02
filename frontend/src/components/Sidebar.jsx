@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { IconMic, IconBarChart, IconList, IconDocument } from '../utils/icons'
 
 function PanelIcon() {
   return (
@@ -24,7 +25,7 @@ function NavItem({ icon, label, active, collapsed, onClick }) {
           : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
       }`}
     >
-      <span className="text-base flex-shrink-0">{icon}</span>
+      <span className="flex-shrink-0">{icon}</span>
       {!collapsed && <span>{label}</span>}
     </button>
   )
@@ -132,10 +133,10 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
         {!collapsed && (
           <p className="text-slate-400 dark:text-slate-600 text-xs font-bold uppercase tracking-widest px-4 pt-1 pb-1">Menu</p>
         )}
-        <NavItem icon="🎙" label="Practice"   active={activeTab === 'landing'}   collapsed={collapsed} onClick={() => onTab('landing')} />
-        <NavItem icon="📊" label="Dashboard"  active={activeTab === 'dashboard'} collapsed={collapsed} onClick={() => onTab('dashboard')} />
-        <NavItem icon="📋" label="Sessions"   active={activeTab === 'sessions'}  collapsed={collapsed} onClick={() => onTab('sessions')} />
-        <NavItem icon="📄" label="CV Profile" active={activeTab === 'cv'}        collapsed={collapsed} onClick={() => onTab('cv')} />
+        <NavItem icon={<IconMic className="w-4 h-4" />}       label="Practice"   active={activeTab === 'landing'}   collapsed={collapsed} onClick={() => onTab('landing')} />
+        <NavItem icon={<IconBarChart className="w-4 h-4" />} label="Dashboard"  active={activeTab === 'dashboard'} collapsed={collapsed} onClick={() => onTab('dashboard')} />
+        <NavItem icon={<IconList className="w-4 h-4" />}     label="Sessions"   active={activeTab === 'sessions'}  collapsed={collapsed} onClick={() => onTab('sessions')} />
+        <NavItem icon={<IconDocument className="w-4 h-4" />} label="CV Profile" active={activeTab === 'cv'}        collapsed={collapsed} onClick={() => onTab('cv')} />
       </nav>
 
       {/* Bottom section */}
