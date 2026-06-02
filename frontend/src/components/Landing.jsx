@@ -341,19 +341,6 @@ export default function Landing({ onStart }) {
 
       <div className="relative z-10 w-full max-w-2xl">
 
-        {/* ── Hero ── */}
-        <div className="text-center mb-8 animate-fade-up">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-4 py-1.5 mb-5 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-emerald-400 text-sm font-medium tracking-wide">AI-Powered Voice Interview</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-3 tracking-tight leading-none">
-            <span className="text-white">Mock</span><span className="gradient-text">Mate</span>
-          </h1>
-          <p className="text-slate-400 text-lg max-w-md mx-auto leading-relaxed">
-            Practice interviews with a real-time AI voice coach.
-          </p>
-        </div>
 
 {/* ── Language Selector ── */}
         <div className="mb-5 animate-fade-up" style={{ animationDelay: '0.03s' }}>
