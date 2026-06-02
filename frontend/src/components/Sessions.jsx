@@ -24,7 +24,7 @@ function FacePanel({ session }) {
   return (
     <div className="bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-4 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">👁 Body Language</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest">👁 Body Language</p>
         {conf != null && (
           <span className={`text-sm font-black ${conf >= 7 ? 'text-emerald-400' : conf >= 4 ? 'text-yellow-400' : 'text-red-400'}`}>
             {parseFloat(conf).toFixed(1)}<span className="text-slate-600 text-xs font-normal">/10</span>
@@ -34,7 +34,7 @@ function FacePanel({ session }) {
       {eye != null && (
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-500 dark:text-slate-400">Eye Contact</span>
+            <span className="text-slate-600 dark:text-slate-400">Eye Contact</span>
             <span className={eye >= 70 ? 'text-emerald-400' : eye >= 40 ? 'text-yellow-400' : 'text-red-400'}>{eye}%</span>
           </div>
           <ProgressBar pct={eye} color={eye >= 70 ? 'bg-emerald-500' : eye >= 40 ? 'bg-amber-400' : 'bg-red-500'} />
@@ -43,7 +43,7 @@ function FacePanel({ session }) {
       {head != null && (
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-500 dark:text-slate-400">Head Stability</span>
+            <span className="text-slate-600 dark:text-slate-400">Head Stability</span>
             <span className={head >= 70 ? 'text-emerald-400' : head >= 40 ? 'text-yellow-400' : 'text-red-400'}>{head}%</span>
           </div>
           <ProgressBar pct={head} color={head >= 70 ? 'bg-emerald-500' : head >= 40 ? 'bg-amber-400' : 'bg-red-500'} />
@@ -76,20 +76,20 @@ function SessionDetail({ session }) {
       {(detail.company_name || detail.candidate_name || (detail.language && detail.language !== 'en-US')) && (
         <div className="flex flex-wrap gap-2 text-xs">
           {detail.candidate_name && (
-            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-500 dark:text-slate-400">👤 {detail.candidate_name}</span>
+            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-600 dark:text-slate-400">👤 {detail.candidate_name}</span>
           )}
           {detail.company_name && (
-            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-500 dark:text-slate-400">🏢 {detail.company_name}</span>
+            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-600 dark:text-slate-400">🏢 {detail.company_name}</span>
           )}
           {detail.language && detail.language !== 'en-US' && (
-            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-500 dark:text-slate-400">
+            <span className="glass border border-slate-200 dark:border-slate-700/40 rounded-full px-3 py-1 text-slate-600 dark:text-slate-400">
               {langFlag(detail.language)} {detail.language}
             </span>
           )}
         </div>
       )}
 
-      {detail.summary && <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{detail.summary}</p>}
+      {detail.summary && <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{detail.summary}</p>}
 
       {/* Strength / Improvement */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -126,7 +126,7 @@ function SessionDetail({ session }) {
       {/* Per-answer breakdown */}
       {detail.answers?.length > 0 && (
         <div className="space-y-2">
-          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">Answer Breakdown</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Answer Breakdown</p>
           {detail.answers.map((a, i) => {
             const fillers = a.filler_counts
               ? Object.entries(a.filler_counts).sort((x, y) => y[1] - x[1]).slice(0, 3)
@@ -144,7 +144,7 @@ function SessionDetail({ session }) {
                       {a.wpm > 0 && (
                         <span className={`text-xs font-medium ${a.wpm >= 110 && a.wpm <= 170 ? 'text-emerald-400' : 'text-yellow-400'}`}>{a.wpm} wpm</span>
                       )}
-                      {a.word_count > 0 && <span className="text-xs text-slate-400 dark:text-slate-600">{a.word_count} words</span>}
+                      {a.word_count > 0 && <span className="text-xs text-slate-600 dark:text-slate-400">{a.word_count} words</span>}
                       {a.total_fillers != null && (
                         <span className={`text-xs ${a.total_fillers === 0 ? 'text-emerald-400' : a.total_fillers <= 3 ? 'text-yellow-400' : 'text-red-400'}`}>
                           {a.total_fillers} fillers
@@ -172,7 +172,7 @@ function SessionDetail({ session }) {
                         {a.star_score != null && <span className="text-slate-600 text-xs ml-1">{a.star_score}/4</span>}
                       </div>
                     )}
-                    {a.feedback && <p className="text-slate-400 dark:text-slate-500 text-xs mt-1.5 leading-relaxed">{a.feedback}</p>}
+                    {a.feedback && <p className="text-slate-600 dark:text-slate-400 text-xs mt-1.5 leading-relaxed">{a.feedback}</p>}
                   </div>
                 </div>
               </div>
@@ -212,16 +212,16 @@ function SessionCard({ session, index }) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2 mt-0.5">
-            <span className="text-slate-400 dark:text-slate-500 text-xs">{formatDate(session.created_at)}</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs">{formatDate(session.created_at)}</span>
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${difficultyBadge(session.difficulty)}`}>{session.difficulty || 'Mid'}</span>
-            <span className="text-slate-400 dark:text-slate-600 text-xs">{typeBadge(session.interview_type)}</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs">{typeBadge(session.interview_type)}</span>
             {session.duration_seconds > 0 && (
-              <span className="text-slate-400 dark:text-slate-600 text-xs">⏱ {durationLabel(session.duration_seconds)}</span>
+              <span className="text-slate-600 dark:text-slate-400 text-xs">⏱ {durationLabel(session.duration_seconds)}</span>
             )}
             {flag && flag !== '🇬🇧' && <span className="text-xs">{flag}</span>}
           </div>
         </div>
-        <span className="text-slate-400 dark:text-slate-600 text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
+        <span className="text-slate-600 dark:text-slate-400 text-xs flex-shrink-0">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
@@ -261,7 +261,7 @@ export default function Sessions({ onNavigate }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white">Your Sessions</h1>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
               {loading ? 'Loading…' : `${sessions.length} interview${sessions.length !== 1 ? 's' : ''} completed`}
             </p>
           </div>
@@ -285,7 +285,7 @@ export default function Sessions({ onNavigate }) {
           <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-12 flex flex-col items-center gap-4 text-center">
             <span className="text-5xl">🎙</span>
             <p className="text-slate-900 dark:text-white font-bold text-lg">No interviews yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
             <button
               onClick={() => onNavigate('landing')}
               className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-6 py-2.5 rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-500/30 text-sm"
@@ -319,13 +319,13 @@ export default function Sessions({ onNavigate }) {
             </div>
 
             {/* Count */}
-            <p className="text-slate-400 dark:text-slate-600 text-xs">
+            <p className="text-slate-600 dark:text-slate-400 text-xs">
               Showing {visible.length} of {sessions.length} session{sessions.length !== 1 ? 's' : ''}
             </p>
 
             {/* List */}
             {visible.length === 0 ? (
-              <p className="text-slate-400 dark:text-slate-600 text-sm text-center py-8">No sessions match your filter.</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm text-center py-8">No sessions match your filter.</p>
             ) : (
               <div className="space-y-3">
                 {visible.map((s, i) => <SessionCard key={s.id} session={s} index={i} />)}

@@ -87,7 +87,7 @@ function VideoAvatar({ status, compact = false }) {
         </div>
       </div>
       <div className={compact ? '' : 'text-center'}>
-        <p className={`text-white font-bold tracking-wide ${compact ? 'text-xs' : 'text-sm'}`}>Alex — Interviewer</p>
+        <p className={`text-slate-900 dark:text-white font-bold tracking-wide ${compact ? 'text-xs' : 'text-sm'}`}>Alex — Interviewer</p>
         <div className={`flex items-center gap-1.5 mt-0.5 text-xs font-medium transition-colors duration-300 ${compact ? '' : 'justify-center'} ${
           status === 'speaking'  ? 'text-emerald-400' :
           status === 'listening' ? 'text-red-400'     :
@@ -118,16 +118,16 @@ function HintCard({ hints, analytics, questionIndex }) {
           <span className="text-slate-600 text-xs">{open ? '▲' : '▼'}</span>
         </button>
         {open && (
-          <div className="px-4 pb-4 space-y-3 border-t border-slate-700/30 pt-3">
+          <div className="px-4 pb-4 space-y-3 border-t border-slate-200 dark:border-slate-700/30 pt-3">
             <div className="flex flex-wrap gap-2 text-xs">
-              {analytics.durationSeconds > 0 && <span className="bg-slate-800/80 rounded-full px-2.5 py-1 text-slate-300">⏱ {durationLabel(analytics.durationSeconds)}</span>}
-              {analytics.wpm > 0 && <span className={`bg-slate-800/80 rounded-full px-2.5 py-1 ${wpmColor(analytics.wpm)}`}>{analytics.wpm} wpm</span>}
-              {analytics.totalFillers > 0 && <span className="bg-slate-800/80 rounded-full px-2.5 py-1 text-orange-400">{analytics.totalFillers} filler{analytics.totalFillers > 1 ? 's' : ''}</span>}
-              {isBehavioral && <span className={`bg-slate-800/80 rounded-full px-2.5 py-1 ${analytics.starScore === 4 ? 'text-emerald-400' : analytics.starScore >= 2 ? 'text-yellow-400' : 'text-red-400'}`}>STAR {analytics.starScore}/4</span>}
+              {analytics.durationSeconds > 0 && <span className="bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 text-slate-700 dark:text-slate-300">⏱ {durationLabel(analytics.durationSeconds)}</span>}
+              {analytics.wpm > 0 && <span className={`bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 ${wpmColor(analytics.wpm)}`}>{analytics.wpm} wpm</span>}
+              {analytics.totalFillers > 0 && <span className="bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 text-orange-400">{analytics.totalFillers} filler{analytics.totalFillers > 1 ? 's' : ''}</span>}
+              {isBehavioral && <span className={`bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 ${analytics.starScore === 4 ? 'text-emerald-400' : analytics.starScore >= 2 ? 'text-yellow-400' : 'text-red-400'}`}>STAR {analytics.starScore}/4</span>}
             </div>
             {hints.map((hint, i) => (
               <div key={i} className="space-y-1">
-                <p className="text-slate-300 text-xs leading-relaxed">{iconMap[hint.type] || '💡'} {hint.text}</p>
+                <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed">{iconMap[hint.type] || '💡'} {hint.text}</p>
                 {hint.better && <p className="text-emerald-400 text-xs leading-relaxed pl-3 border-l-2 border-emerald-500/40">Better: {hint.better}</p>}
               </div>
             ))}
@@ -473,7 +473,7 @@ export default function Interview({ sessionData, onComplete }) {
   const progressPct = Math.round((currentQuestionIndex / questions.length) * 100)
 
   return (
-    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden relative">
       {/* Background orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="animate-orb absolute top-0 right-0 w-72 h-72 rounded-full bg-emerald-500/6 blur-3xl" />
@@ -481,21 +481,21 @@ export default function Interview({ sessionData, onComplete }) {
       </div>
 
       {/* ── Header ── */}
-      <header className="relative z-10 glass border-b border-slate-700/50 px-4 py-3 flex flex-col gap-2">
+      <header className="relative z-10 glass border-b border-slate-200 dark:border-slate-700/50 px-4 py-3 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           {/* Left: logo + meta */}
           <div className="flex items-center gap-3">
             <span className="font-black text-lg">
-              <span className="text-white">Mock</span><span className="gradient-text">Mate</span>
+              <span className="text-slate-900 dark:text-white">Mock</span><span className="gradient-text">Mate</span>
             </span>
-            <span className="hidden sm:block text-slate-600 text-xs border border-slate-700/60 rounded-full px-2 py-0.5">{difficulty}</span>
-            <span className="hidden sm:block text-slate-400 text-sm truncate max-w-[180px]">— {role}</span>
+            <span className="hidden sm:block text-slate-500 dark:text-slate-600 text-xs border border-slate-200 dark:border-slate-700/60 rounded-full px-2 py-0.5">{difficulty}</span>
+            <span className="hidden sm:block text-slate-600 dark:text-slate-400 text-sm truncate max-w-[180px]">— {role}</span>
           </div>
 
           {/* Right: timer + controls + Q counter */}
           <div className="flex items-center gap-2">
             {/* Elapsed timer */}
-            <div className="hidden sm:flex items-center gap-1.5 text-slate-500 text-xs font-mono bg-slate-800/60 border border-slate-700/40 rounded-full px-2.5 py-1">
+            <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-500 text-xs font-mono bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 rounded-full px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {fmtTime(elapsedSeconds)}
             </div>
@@ -519,7 +519,7 @@ export default function Interview({ sessionData, onComplete }) {
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700"
             style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg,#10b981,#06b6d4)', boxShadow: '0 0 8px rgba(16,185,129,0.6)' }} />
         </div>
@@ -536,7 +536,7 @@ export default function Interview({ sessionData, onComplete }) {
 
       <div className="flex-1 flex flex-col lg:flex-row gap-0 overflow-hidden relative z-10">
         {/* ── Left panel ── */}
-        <div className="lg:w-72 glass-light border-b lg:border-b-0 lg:border-r border-slate-700/40
+        <div className="lg:w-72 glass-light border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700/40
           flex flex-row lg:flex-col items-center justify-between lg:justify-center
           py-3 px-4 lg:py-8 lg:px-6 gap-3 lg:gap-6">
 
@@ -569,7 +569,7 @@ export default function Interview({ sessionData, onComplete }) {
                 <div key={i} className={`rounded-full transition-all duration-500 ${
                   i < currentQuestionIndex  ? 'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-emerald-400 shadow-sm shadow-emerald-500/50' :
                   i === currentQuestionIndex ? 'w-2.5 h-2.5 lg:w-3 lg:h-3 bg-emerald-400 ring-2 ring-emerald-400/30 shadow-md shadow-emerald-500/50' :
-                  'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-slate-700'
+                  'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-slate-300 dark:bg-slate-700'
                 }`} />
               ))}
             </div>
@@ -582,8 +582,8 @@ export default function Interview({ sessionData, onComplete }) {
 
           {/* Live Coach label — desktop only */}
           <div className="hidden lg:block text-center space-y-1 px-2">
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">Live Coach</p>
-            <p className="text-slate-600 text-xs leading-relaxed">Instant feedback appears after each answer</p>
+            <p className="text-slate-600 dark:text-slate-500 text-xs font-semibold uppercase tracking-widest">Live Coach</p>
+            <p className="text-slate-600 dark:text-slate-600 text-xs leading-relaxed">Instant feedback appears after each answer</p>
           </div>
         </div>
 
@@ -599,7 +599,7 @@ export default function Interview({ sessionData, onComplete }) {
                   <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-br from-emerald-500/25 to-teal-500/20 text-emerald-100 border border-emerald-500/25'
-                      : 'glass-light text-slate-200 border border-slate-700/40'
+                      : 'glass-light text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/40'
                   }`}>
                     {msg.role === 'assistant' && <p className="text-xs text-emerald-400/70 mb-1 font-bold tracking-wide">ALEX</p>}
                     {msg.content}
@@ -620,7 +620,7 @@ export default function Interview({ sessionData, onComplete }) {
           </div>
 
           {/* ── Bottom controls ── */}
-          <div className="border-t border-slate-700/40 glass px-4 sm:px-6 py-4 sm:py-5">
+          <div className="border-t border-slate-200 dark:border-slate-700/40 glass px-4 sm:px-6 py-4 sm:py-5">
             {error && (
               <div className="mb-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-2 text-red-400 text-sm text-center">
                 {error}
@@ -640,7 +640,7 @@ export default function Interview({ sessionData, onComplete }) {
                     className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-200 select-none
                       ${webcamStream
                         ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-xl shadow-blue-500/40 hover:scale-105'
-                        : 'glass-light border border-slate-700/60 text-slate-400 hover:text-slate-200 hover:border-slate-500 hover:scale-105'
+                        : 'glass-light border border-slate-200 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-500 hover:scale-105'
                       }`}
                   >
                     <CameraIcon on={!!webcamStream} />
@@ -669,7 +669,7 @@ export default function Interview({ sessionData, onComplete }) {
                         ${isListening
                           ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white btn-recording scale-110'
                           : isSpeaking || isThinking
-                          ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                          ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                           : 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-105 animate-idle-ring'
                         }`}
                     >

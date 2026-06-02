@@ -71,10 +71,10 @@ function StatCard({ icon, label, value, sub, color = 'text-slate-900 dark:text-w
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5 space-y-2">
       <div className="flex items-center gap-2">
         <span className="text-base">{icon}</span>
-        <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold uppercase tracking-wide">{label}</span>
+        <span className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">{label}</span>
       </div>
       <p className={`text-2xl font-black ${color}`}>{value}</p>
-      {sub && <p className="text-slate-400 dark:text-slate-600 text-xs">{sub}</p>}
+      {sub && <p className="text-slate-600 dark:text-slate-400 text-xs">{sub}</p>}
     </div>
   )
 }
@@ -101,10 +101,10 @@ function ScoreChart({ sessions }) {
           <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-violet-400 inline-block rounded" /> AI /10</span>
         </div>
       </div>
-      <p className="text-slate-400 dark:text-slate-600 text-xs mb-4">Last {data.length} interviews (AI score ÷10 for scale)</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-4">Last {data.length} interviews (AI score ÷10 for scale)</p>
 
       {data.length < 2 ? (
-        <div className="flex items-center justify-center h-36 text-slate-400 dark:text-slate-600 text-sm">Complete more interviews to see your trend</div>
+        <div className="flex items-center justify-center h-36 text-slate-600 dark:text-slate-400 text-sm">Complete more interviews to see your trend</div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
@@ -143,9 +143,9 @@ function SkillBenchmark({ sessions }) {
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 h-full">
       <p className="text-slate-900 dark:text-white font-bold mb-1">Skill Benchmark</p>
-      <p className="text-slate-400 dark:text-slate-600 text-xs mb-2">Averaged across all sessions</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-2">Averaged across all sessions</p>
       {!valid.length ? (
-        <div className="flex items-center justify-center h-48 text-slate-400 dark:text-slate-600 text-sm">Complete interviews to see your skills</div>
+        <div className="flex items-center justify-center h-48 text-slate-600 dark:text-slate-400 text-sm">Complete interviews to see your skills</div>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={200}>
@@ -160,7 +160,7 @@ function SkillBenchmark({ sessions }) {
             {skillData.map(d => (
               <div key={d.skill} className="text-center">
                 <p className="text-emerald-400 text-xs font-bold">{d.value}</p>
-                <p className="text-slate-400 dark:text-slate-600 text-xs">{d.skill}</p>
+                <p className="text-slate-600 dark:text-slate-400 text-xs">{d.skill}</p>
               </div>
             ))}
           </div>
@@ -176,7 +176,7 @@ function BreakdownCard({ title, icon, rows }) {
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
       <p className="text-slate-900 dark:text-white font-bold text-sm mb-3">{icon} {title}</p>
       {rows.length === 0 ? (
-        <p className="text-slate-400 dark:text-slate-600 text-xs">No data yet</p>
+        <p className="text-slate-600 dark:text-slate-400 text-xs">No data yet</p>
       ) : (
         <div className="space-y-2.5">
           {rows.map(r => (
@@ -185,7 +185,7 @@ function BreakdownCard({ title, icon, rows }) {
                 <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                   {r.flag && <span>{r.flag}</span>}
                   <span>{r.label}</span>
-                  <span className="text-slate-400 dark:text-slate-600">×{r.count}</span>
+                  <span className="text-slate-600 dark:text-slate-400">×{r.count}</span>
                 </span>
                 {r.avg != null && (
                   <span className={`font-bold ${scoreColor(r.avg)}`}>{r.avg.toFixed(1)}/10</span>
@@ -232,9 +232,9 @@ function ActivityHeatmap({ sessions }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-slate-900 dark:text-white font-bold">Activity — Last 30 Days</p>
-          <p className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">{activeDays} active day{activeDays !== 1 ? 's' : ''} · {totalThisMonth} session{totalThisMonth !== 1 ? 's' : ''} this month</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">{activeDays} active day{activeDays !== 1 ? 's' : ''} · {totalThisMonth} session{totalThisMonth !== 1 ? 's' : ''} this month</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-600">
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
           <span>Less</span>
           {['bg-slate-800/60','bg-emerald-500/30','bg-emerald-500/60','bg-emerald-500'].map((c,i) => (
             <div key={i} className={`w-3.5 h-3.5 rounded-sm ${c}`} />
@@ -269,8 +269,8 @@ function ActivityHeatmap({ sessions }) {
 function FillerWordsPanel({ fillers }) {
   if (!fillers.length) return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full">
-      <p className="text-slate-400 dark:text-slate-500 text-sm font-semibold mb-1">🗣 Filler Words</p>
-      <p className="text-slate-400 dark:text-slate-600 text-xs">No filler word data yet.<br/>Complete interviews to track habits.</p>
+      <p className="text-slate-600 dark:text-slate-400 text-sm font-semibold mb-1">🗣 Filler Words</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs">No filler word data yet.<br/>Complete interviews to track habits.</p>
     </div>
   )
 
@@ -280,9 +280,9 @@ function FillerWordsPanel({ fillers }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-slate-900 dark:text-white font-bold">🗣 Filler Words</p>
-          <p className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">Most-used across all sessions</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Most-used across all sessions</p>
         </div>
-        <span className="text-slate-400 dark:text-slate-500 text-xs">{fillers.reduce((a,f) => a+f.count, 0)} total</span>
+        <span className="text-slate-600 dark:text-slate-400 text-xs">{fillers.reduce((a,f) => a+f.count, 0)} total</span>
       </div>
       <div className="space-y-2.5">
         {fillers.map((f, i) => (
@@ -290,7 +290,7 @@ function FillerWordsPanel({ fillers }) {
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 {i === 0 && <span className="text-red-400 font-black text-xs">#{i+1}</span>}
-                {i > 0  && <span className="text-slate-400 dark:text-slate-600 text-xs">#{i+1}</span>}
+                {i > 0  && <span className="text-slate-600 dark:text-slate-400 text-xs">#{i+1}</span>}
                 <span className="text-orange-300 font-semibold">"{f.word}"</span>
               </div>
               <span className={`font-bold ${i === 0 ? 'text-red-400' : i <= 2 ? 'text-orange-400' : 'text-slate-400'}`}>
@@ -410,7 +410,7 @@ export default function Dashboard({ onNavigate }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white">Hi, {firstName} 👋</h1>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Get ready to ace your next interview</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Get ready to ace your next interview</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -433,7 +433,7 @@ export default function Dashboard({ onNavigate }) {
           <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-12 flex flex-col items-center gap-4 text-center">
             <span className="text-5xl">🎙</span>
             <p className="text-slate-900 dark:text-white font-bold text-lg">No interviews yet</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
             <button onClick={() => onNavigate('landing')} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-6 py-2.5 rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-500/30 text-sm">
               Start your first interview
             </button>
@@ -494,7 +494,7 @@ export default function Dashboard({ onNavigate }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-slate-700 dark:text-slate-200 text-sm font-semibold truncate">{s.role || 'Interview'}</p>
-                      <p className="text-slate-400 dark:text-slate-500 text-xs">{formatDate(s.created_at)} · {s.difficulty || 'Mid'} · {langInfo(s.language||'en-US').flag}</p>
+                      <p className="text-slate-600 dark:text-slate-400 text-xs">{formatDate(s.created_at)} · {s.difficulty || 'Mid'} · {langInfo(s.language||'en-US').flag}</p>
                     </div>
                     {s.ai_score != null && (
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${aiBg(s.ai_score)}`}>AI {Math.round(s.ai_score)}</span>

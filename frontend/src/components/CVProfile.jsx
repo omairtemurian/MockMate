@@ -45,7 +45,7 @@ function SectionCard({ title, icon, delay = 0, children }) {
 function ContactPill({ icon, text }) {
   if (!text) return null
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 px-3 py-1.5 rounded-full">
+    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 px-3 py-1.5 rounded-full">
       <span>{icon}</span>
       <span className="truncate max-w-[160px]">{text}</span>
     </span>
@@ -64,16 +64,16 @@ function ExperienceCard({ exp, defaultOpen }) {
         <div className="flex-1 min-w-0">
           <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{exp.title}</p>
           <p className="text-emerald-400/80 text-xs font-medium mt-0.5">{exp.company}</p>
-          {exp.duration && <p className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">{exp.duration}</p>}
+          {exp.duration && <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">{exp.duration}</p>}
         </div>
-        <span className="text-slate-400 dark:text-slate-600 text-xs flex-shrink-0 mt-1">{open ? '▲' : '▼'}</span>
+        <span className="text-slate-600 dark:text-slate-400 text-xs flex-shrink-0 mt-1">{open ? '▲' : '▼'}</span>
       </button>
       {open && exp.bullets?.length > 0 && (
         <div className="px-4 pb-4 space-y-2 border-t border-slate-200 dark:border-slate-800/60 pt-3">
           {exp.bullets.map((b, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-emerald-500 text-xs flex-shrink-0 mt-0.5">•</span>
-              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">{b}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{b}</p>
             </div>
           ))}
         </div>
@@ -98,7 +98,7 @@ function UploadZone({ onFile, uploading, error }) {
         <div className="text-center mb-8 animate-fade-up">
           <p className="text-emerald-400 text-sm font-bold uppercase tracking-widest mb-2">CV Profile</p>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">Upload your CV</h1>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
             We'll parse it into sections and save it for your interviews
           </p>
         </div>
@@ -115,8 +115,8 @@ function UploadZone({ onFile, uploading, error }) {
           {uploading ? (
             <>
               <div className="w-12 h-12 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Parsing your CV with AI...</p>
-              <p className="text-slate-400 dark:text-slate-600 text-xs">This takes about 10 seconds</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Parsing your CV with AI...</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs">This takes about 10 seconds</p>
             </>
           ) : (
             <>
@@ -125,9 +125,9 @@ function UploadZone({ onFile, uploading, error }) {
               </div>
               <div className="text-center">
                 <p className="text-slate-900 dark:text-white font-semibold">Drop your CV here</p>
-                <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">or click to browse</p>
+                <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">or click to browse</p>
               </div>
-              <p className="text-slate-400 dark:text-slate-600 text-xs">PDF · DOCX · TXT</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs">PDF · DOCX · TXT</p>
             </>
           )}
         </div>
@@ -232,12 +232,12 @@ export default function CVProfile() {
               <button
                 onClick={() => updateInputRef.current?.click()}
                 disabled={uploading}
-                className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2 transition-all disabled:opacity-40"
+                className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 rounded-xl px-3 py-2 transition-all disabled:opacity-40"
               >
                 {uploading ? 'Updating…' : 'Update CV'}
               </button>
               {updatedAt && (
-                <p className="text-slate-400 dark:text-slate-600 text-xs">
+                <p className="text-slate-600 dark:text-slate-400 text-xs">
                   Updated {new Date(updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
               )}
@@ -264,7 +264,7 @@ export default function CVProfile() {
         {/* ── Profile Summary ── */}
         {p.profile && (
           <SectionCard title="Profile" icon="👤" delay={0.05}>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{p.profile}</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{p.profile}</p>
           </SectionCard>
         )}
 
@@ -299,8 +299,8 @@ export default function CVProfile() {
                     <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{edu.degree}</p>
                     <p className="text-cyan-400/80 text-xs font-medium mt-0.5">{edu.institution}</p>
                     <div className="flex gap-3 mt-0.5">
-                      {edu.year  && <p className="text-slate-400 dark:text-slate-600 text-xs">{edu.year}</p>}
-                      {edu.grade && <p className="text-slate-400 dark:text-slate-500 text-xs">{edu.grade}</p>}
+                      {edu.year  && <p className="text-slate-600 dark:text-slate-400 text-xs">{edu.year}</p>}
+                      {edu.grade && <p className="text-slate-600 dark:text-slate-400 text-xs">{edu.grade}</p>}
                     </div>
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export default function CVProfile() {
               <SectionCard title="Languages" icon="🌍" delay={0.25}>
                 <div className="space-y-2">
                   {p.languages.map((l, i) => (
-                    <p key={i} className="text-slate-500 dark:text-slate-400 text-sm">{l}</p>
+                    <p key={i} className="text-slate-600 dark:text-slate-400 text-sm">{l}</p>
                   ))}
                 </div>
               </SectionCard>
@@ -325,7 +325,7 @@ export default function CVProfile() {
               <SectionCard title="Certifications" icon="🏆" delay={0.3}>
                 <div className="space-y-2">
                   {p.certifications.map((c, i) => (
-                    <p key={i} className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">{c}</p>
+                    <p key={i} className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{c}</p>
                   ))}
                 </div>
               </SectionCard>

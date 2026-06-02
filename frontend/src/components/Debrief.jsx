@@ -87,7 +87,7 @@ function OverallScoreBadge({ score }) {
 function StarTracker({ star }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">STAR:</span>
+      <span className="text-slate-600 dark:text-slate-400 text-xs font-semibold">STAR:</span>
       {[
         ["situation", "S"],
         ["task", "T"],
@@ -118,7 +118,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
     .slice(0, 4);
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-4 space-y-3">
-      <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
+      <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest">
         Speech Analytics
       </p>
       <div className="flex flex-wrap gap-2.5">
@@ -127,7 +127,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
             <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
               {durationLabel(analytics.durationSeconds)}
             </span>
-            <span className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">Duration</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Duration</span>
           </div>
         )}
         {analytics.wpm > 0 && (
@@ -138,7 +138,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
             <span className={`font-bold text-sm ${wpmColor(analytics.wpm)}`}>
               {analytics.wpm}
             </span>
-            <span className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">wpm</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">wpm</span>
           </div>
         )}
         <div
@@ -150,7 +150,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
           >
             {analytics.totalFillers}
           </span>
-          <span className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">Fillers</span>
+          <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Fillers</span>
         </div>
         {analytics.wordCount > 0 && (
           <div
@@ -160,13 +160,13 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
             <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
               {analytics.wordCount}
             </span>
-            <span className="text-slate-400 dark:text-slate-600 text-xs mt-0.5">Words</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Words</span>
           </div>
         )}
       </div>
       {topFillers.length > 0 && (
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-600 mb-1.5">Top filler words:</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1.5">Top filler words:</p>
           <div className="flex flex-wrap gap-2">
             {topFillers.map(([word, count]) => (
               <span
@@ -181,7 +181,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
       )}
       {isBehavioral && analytics.star && <StarTracker star={analytics.star} />}
       {analytics.wpm > 0 && (
-        <p className="text-xs text-slate-400 dark:text-slate-600">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           {analytics.wpm < 100
             ? "A bit slow — aim for 120–160 wpm."
             : analytics.wpm > 180
@@ -213,7 +213,7 @@ function AnswerCard({ item, index, role, onRetry }) {
       </div>
 
       <div className="bg-slate-100/60 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-800/60">
-        <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mb-1.5">
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-1.5">
           Your Answer Summary
         </p>
         <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
@@ -222,7 +222,7 @@ function AnswerCard({ item, index, role, onRetry }) {
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mb-1.5">Feedback</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-1.5">Feedback</p>
         <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
           {item.feedback}
         </p>
@@ -240,7 +240,7 @@ function AnswerCard({ item, index, role, onRetry }) {
         <div>
           <button
             onClick={() => setShowIdeal((o) => !o)}
-            className="w-full flex items-center justify-between px-4 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-sm text-slate-500 dark:text-slate-400 hover:border-amber-500/30 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
+            className="w-full flex items-center justify-between px-4 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-sm text-slate-600 dark:text-slate-400 hover:border-amber-500/30 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
           >
             <span className="flex items-center gap-2">
               <span>⭐</span>{" "}
@@ -269,7 +269,7 @@ function AnswerCard({ item, index, role, onRetry }) {
       {/* Retry button */}
       <button
         onClick={() => onRetry(item.question, item.score)}
-        className="w-full flex items-center justify-center gap-2 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-slate-500 dark:text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 text-xs font-semibold transition-all"
+        className="w-full flex items-center justify-center gap-2 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-slate-600 dark:text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 text-xs font-semibold transition-all"
       >
         🔄 Retry this question
       </button>
@@ -359,7 +359,7 @@ function OverallSpeechSummary({ qaPairs, sessionDuration }) {
             style={{ animationDelay: `${i * 0.07}s` }}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">{s.label}</p>
+            <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">{s.label}</p>
           </div>
         ))}
       </div>
@@ -392,7 +392,7 @@ function AnswerLengthChart({ answers }) {
       style={{ animationDelay: "0.15s" }}
     >
       <p className="text-slate-900 dark:text-white font-bold mb-1">📊 Answer Length</p>
-      <p className="text-slate-400 dark:text-slate-600 text-xs mb-4">Bar colour = content score</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-4">Bar colour = content score</p>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart
           data={data}
@@ -613,7 +613,7 @@ function BodyLanguageCard({ metrics }) {
       <div className="space-y-3">
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold">Eye Contact</span>
+            <span className="text-slate-600 dark:text-slate-400 font-semibold">Eye Contact</span>
             <span className={eyePct >= 70 ? "text-emerald-400" : eyePct >= 40 ? "text-amber-400" : "text-red-400"}>{eyePct}%</span>
           </div>
           <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -622,7 +622,7 @@ function BodyLanguageCard({ metrics }) {
         </div>
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold">Head Stability</span>
+            <span className="text-slate-600 dark:text-slate-400 font-semibold">Head Stability</span>
             <span className={headPct >= 70 ? "text-emerald-400" : headPct >= 40 ? "text-amber-400" : "text-red-400"}>{headPct}%</span>
           </div>
           <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -630,7 +630,7 @@ function BodyLanguageCard({ metrics }) {
           </div>
         </div>
       </div>
-      <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed border-t border-slate-200 dark:border-slate-700/40 pt-3">{tip}</p>
+      <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed border-t border-slate-200 dark:border-slate-700/40 pt-3">{tip}</p>
     </div>
   );
 }
@@ -806,7 +806,7 @@ export default function Debrief({
           <p className="text-slate-600 dark:text-slate-300 text-xl font-bold">
             Preparing your debrief...
           </p>
-          <p className="text-slate-400 dark:text-slate-600 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             Analysing content &amp; speech patterns
           </p>
         </div>
@@ -864,9 +864,9 @@ export default function Debrief({
           <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-2">
             Your Full Debrief
           </h1>
-          <p className="text-slate-400 dark:text-slate-500 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             {role} ·{" "}
-            <span className="text-slate-400 dark:text-slate-600">{difficulty || "Mid"} level</span>
+            <span className="text-slate-600 dark:text-slate-400">{difficulty || "Mid"} level</span>
           </p>
         </div>
 
@@ -881,7 +881,7 @@ export default function Debrief({
           <OverallScoreBadge score={debrief.overall_score} />
           <div className="text-center max-w-lg">
             <p className="text-slate-900 dark:text-white font-bold text-lg mb-2">Content Score</p>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               {debrief.summary}
             </p>
           </div>
@@ -916,7 +916,7 @@ export default function Debrief({
                   <span className="text-emerald-400">{item.score}/20</span>
                 </h4>
 
-                <ul className="list-disc ml-6 text-slate-500 dark:text-slate-400 text-sm space-y-1">
+                <ul className="list-disc ml-6 text-slate-600 dark:text-slate-400 text-sm space-y-1">
                   {item.tips.map((tip, i) => (
                     <li key={i}>{tip}</li>
                   ))}
@@ -939,7 +939,7 @@ export default function Debrief({
               <p className="text-slate-900 dark:text-white font-bold text-lg">
                 🎥 Interview Recording
               </p>
-              <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
                 Review your webcam recording from this interview session.
               </p>
             </div>

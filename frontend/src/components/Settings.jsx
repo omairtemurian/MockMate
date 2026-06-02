@@ -19,7 +19,7 @@ function Field({ label, hint, children }) {
     <div className="space-y-1.5">
       <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold">
         {label}
-        {hint && <span className="ml-2 text-slate-400 dark:text-slate-600 font-normal text-xs">{hint}</span>}
+        {hint && <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal text-xs">{hint}</span>}
       </label>
       {children}
     </div>
@@ -259,7 +259,7 @@ export default function Settings({ onNavigate }) {
           </button>
           <div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white">Account Settings</h1>
-            <p className="text-slate-400 dark:text-slate-500 text-sm mt-0.5">{user?.email}</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">{user?.email}</p>
           </div>
         </div>
 
@@ -282,7 +282,7 @@ export default function Settings({ onNavigate }) {
                   type="text"
                   value={user?.email || ''}
                   disabled
-                  className="flex-1 bg-slate-100/60 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-400 dark:text-slate-500 text-sm cursor-not-allowed"
+                  className="flex-1 bg-slate-100/60 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-600 dark:text-slate-400 text-sm cursor-not-allowed"
                 />
                 {isVerified(user) ? (
                   <span className="text-emerald-400 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
@@ -303,7 +303,7 @@ export default function Settings({ onNavigate }) {
               {/* Resend option for unverified accounts */}
               {!isVerified(user) && (
                 <div className="mt-2 space-y-2">
-                  <p className="text-slate-400 dark:text-slate-600 text-xs">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs">
                     Your email is not verified. Click below to receive a new verification link.
                   </p>
                   {resendMsg && (

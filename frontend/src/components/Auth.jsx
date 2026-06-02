@@ -103,15 +103,15 @@ export default function Auth() {
             </svg>
           </div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Check your email</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-1">We sent a verification link to</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">We sent a verification link to</p>
           <p className="text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
-          <p className="text-slate-400 dark:text-slate-600 text-xs mb-8">
+          <p className="text-slate-600 dark:text-slate-400 text-xs mb-8">
             Click the link in the email to activate your account.<br />
             It may take a minute to arrive.
           </p>
           <button
             onClick={() => { setVerifyPending(null); setMode('login') }}
-            className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors"
+            className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors"
           >
             ← Back to sign in
           </button>
@@ -147,7 +147,7 @@ export default function Auth() {
             <span className="text-slate-900 dark:text-white">Mock</span>
             <span className="gradient-text">Mate</span>
           </h1>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">AI-Powered Voice Interview Practice</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">AI-Powered Voice Interview Practice</p>
         </div>
 
         {/* Card */}
@@ -166,7 +166,7 @@ export default function Auth() {
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   mode === t.key
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
               >
                 {t.label}
@@ -211,7 +211,7 @@ export default function Auth() {
               <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">
                 Password
                 {mode === 'register' && (
-                  <span className="ml-2 text-slate-400 dark:text-slate-500 font-normal text-xs">min. 6 characters</span>
+                  <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal text-xs">min. 6 characters</span>
                 )}
               </label>
               <div className="relative">
@@ -279,7 +279,7 @@ export default function Auth() {
             {mode === 'register' && (
               <div className="flex items-start gap-2.5 bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
                 <span className="text-base mt-0.5">📧</span>
-                <p className="text-slate-400 dark:text-slate-500 text-xs leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   We'll send a verification link to your email address to activate your account.
                 </p>
               </div>
@@ -313,7 +313,7 @@ export default function Auth() {
           </form>
 
           {/* Switch mode link */}
-          <p className="text-center text-slate-400 dark:text-slate-600 text-sm mt-5">
+          <p className="text-center text-slate-600 dark:text-slate-400 text-sm mt-5">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
