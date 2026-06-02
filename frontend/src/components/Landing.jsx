@@ -95,9 +95,9 @@ const DIFFICULTY_INFO = {
 }
 
 const LANGUAGES = [
-  { code: 'en-US', label: 'English',  flag: '🇬🇧' },
-  { code: 'de-DE', label: 'Deutsch',  flag: '🇩🇪' },
-  { code: 'fr-FR', label: 'Français', flag: '🇫🇷' },
+  { code: 'en-US', label: 'English',  short: 'EN' },
+  { code: 'de-DE', label: 'Deutsch',  short: 'DE' },
+  { code: 'fr-FR', label: 'Français', short: 'FR' },
 ]
 
 function scoreColor(s) {
@@ -187,7 +187,7 @@ function pillCls(active) {
   return `flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
     active
       ? 'bg-emerald-500/15 border border-emerald-500/35 text-emerald-400'
-      : 'bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+      : 'bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-700 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
   }`
 }
 
@@ -332,22 +332,22 @@ export default function Landing({ onStart }) {
   const SettingsRow = () => (
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Level</label>
+        <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Level</label>
         <div className="flex gap-1">
           {['Junior', 'Mid', 'Senior'].map(d => (
             <button key={d} onClick={() => setDifficulty(d)} className={pillCls(difficulty === d)}>{d}</button>
           ))}
         </div>
-        <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">{DIFFICULTY_INFO[difficulty]}</p>
+        <p className="text-slate-600 dark:text-slate-500 text-xs mt-1">{DIFFICULTY_INFO[difficulty]}</p>
       </div>
       <div>
-        <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Language</label>
+        <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Language</label>
         <div className="flex gap-1">
           {LANGUAGES.map(lang => (
             <button key={lang.code} onClick={() => setLanguage(lang.code)} title={lang.label}
-              className={pillCls(language === lang.code) + ' text-base'}
+              className={pillCls(language === lang.code)}
             >
-              {lang.flag}
+              {lang.short}
             </button>
           ))}
         </div>
@@ -364,7 +364,7 @@ export default function Landing({ onStart }) {
         {/* Heading */}
         <div className="mb-6 animate-fade-up">
           <h1 className="text-2xl font-black text-slate-900 dark:text-white">Practice Interview</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Configure your session and start when ready.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Configure your session and start when ready.</p>
         </div>
 
         {/* Mode tabs — segmented control */}
@@ -377,7 +377,7 @@ export default function Landing({ onStart }) {
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 tab === t.key
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300'
               }`}
             >
               {t.label}
@@ -396,8 +396,8 @@ export default function Landing({ onStart }) {
             <>
               {/* Company */}
               <div>
-                <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">
-                  Company <span className="font-normal normal-case text-slate-400 dark:text-slate-600">— optional</span>
+                <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">
+                  Company <span className="font-normal normal-case text-slate-500 dark:text-slate-500">— optional</span>
                 </label>
                 <input
                   type="text"
@@ -411,7 +411,7 @@ export default function Landing({ onStart }) {
               {/* Job Description */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">
+                  <label className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">
                     Job Description <span className="text-emerald-500">*</span>
                   </label>
                   {!jdCommitted && (
@@ -506,7 +506,7 @@ export default function Landing({ onStart }) {
                           >
                             <IconUpload className="w-5 h-5 text-slate-400" />
                             <p className="text-sm text-slate-500 dark:text-slate-400">Click to upload</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-600">PDF · DOCX · TXT</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-500">PDF · DOCX · TXT</p>
                             <input ref={jdFileInputRef} type="file" accept=".pdf,.docx,.txt" className="hidden"
                               onChange={(e) => handleJdFileSelect(e.target.files[0])} />
                           </div>
@@ -520,8 +520,8 @@ export default function Landing({ onStart }) {
 
               {/* CV Upload */}
               <div>
-                <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">
-                  CV / Resume <span className="font-normal normal-case text-slate-400 dark:text-slate-600">— optional, personalises questions</span>
+                <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">
+                  CV / Resume <span className="font-normal normal-case text-slate-500 dark:text-slate-500">— optional, personalises questions</span>
                 </label>
                 {!cvFile ? (
                   <div
@@ -535,7 +535,7 @@ export default function Landing({ onStart }) {
                   >
                     <IconUpload className="w-4 h-4 text-slate-400 flex-shrink-0" />
                     <span className="text-sm text-slate-500 dark:text-slate-400 flex-1">Upload CV</span>
-                    <span className="text-xs text-slate-400 dark:text-slate-600">PDF · DOCX · TXT</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-500">PDF · DOCX · TXT</span>
                     <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={(e) => handleFileSelect(e.target.files[0])} />
                   </div>
                 ) : (
@@ -561,7 +561,7 @@ export default function Landing({ onStart }) {
 
               {/* Interview type */}
               <div>
-                <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Interview Type</label>
+                <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Interview Type</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {INTERVIEW_TYPES.map(t => (
                     <button
@@ -605,7 +605,7 @@ export default function Landing({ onStart }) {
           {tab === 'practice' && (
             <>
               <div>
-                <label className="block text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">Topic</label>
+                <label className="block text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide mb-2">Topic</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {CATEGORIES.map(c => (
                     <button
@@ -645,7 +645,7 @@ export default function Landing({ onStart }) {
           )}
         </div>
 
-        <p className="text-center text-slate-500 dark:text-slate-500 text-xs mt-4">
+        <p className="text-center text-slate-600 dark:text-slate-500 text-xs mt-4">
           Uses your browser's microphone · Works best in Chrome
         </p>
 

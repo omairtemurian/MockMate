@@ -31,36 +31,6 @@ function NavItem({ icon, label, active, collapsed, onClick }) {
   )
 }
 
-function PlanBadge({ plan, collapsed, onUpgradeClick }) {
-  if (plan === 'pro') {
-    return (
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-2 ${collapsed ? 'justify-center px-0' : ''}`}>
-        <span className="text-xs">👑</span>
-        {!collapsed && <span className="text-amber-400 text-xs font-bold">Pro Plan</span>}
-      </div>
-    )
-  }
-  if (collapsed) {
-    return (
-      <button
-        onClick={onUpgradeClick}
-        title="Upgrade to Pro"
-        className="w-full flex items-center justify-center py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-sm transition-all shadow-lg shadow-amber-500/20 mb-2"
-      >
-        <span>👑</span>
-      </button>
-    )
-  }
-  return (
-    <button
-      onClick={onUpgradeClick}
-      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-sm font-bold transition-all shadow-lg shadow-amber-500/20 mb-2"
-    >
-      <span>👑</span>
-      <span>Upgrade to Pro</span>
-    </button>
-  )
-}
 
 export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgradeClick }) {
   const { user, logout } = useAuth()
@@ -141,8 +111,6 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
 
       {/* Bottom section */}
       <div className={`border-t border-slate-200 dark:border-slate-700/40 ${collapsed ? 'p-2' : 'p-3'}`}>
-        <PlanBadge plan={user?.plan} collapsed={collapsed} onUpgradeClick={onUpgradeClick} />
-
         {/* User area — clicking opens dropdown */}
         <div className="relative" ref={menuRef}>
 

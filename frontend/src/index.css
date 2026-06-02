@@ -83,7 +83,7 @@
 
 /* ── Glass utility ── */
 .glass {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(241, 245, 249, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -91,7 +91,7 @@ html.dark .glass {
   background: rgba(15, 23, 42, 0.65);
 }
 .glass-light {
-  background: rgba(248, 250, 252, 0.85);
+  background: rgba(241, 245, 249, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
