@@ -49,7 +49,7 @@ function AppInner() {
     const param = new URLSearchParams(window.location.search).get('dev')
     if (!param) return
     if (param === 'debrief') {
-      import('./dev/mockData.js').then(({ mockQaPairs, mockSessionData, mockFaceMetrics, mockRecording }) => {
+      import(/* @vite-ignore */ './dev/mockData.js').then(({ mockQaPairs, mockSessionData, mockFaceMetrics, mockRecording }) => {
         setSessionData(mockSessionData)
         setQaPairs(mockQaPairs)
         setDuration(487)
