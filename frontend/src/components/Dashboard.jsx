@@ -413,13 +413,6 @@ export default function Dashboard({ onNavigate }) {
             <p className="text-slate-500 text-sm mt-1">Get ready to ace your next interview</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Readiness badge */}
-            {sessions.length > 0 && (
-              <div className="text-center glass border border-slate-700/40 rounded-2xl px-4 py-2">
-                <p className={`text-2xl font-black ${readinessColor(readiness)}`}>{readiness}</p>
-                <p className="text-slate-500 text-xs">{readinessLabel(readiness)}</p>
-              </div>
-            )}
             <button
               onClick={() => onNavigate('landing')}
               className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-5 py-2.5 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/30 whitespace-nowrap text-sm"
