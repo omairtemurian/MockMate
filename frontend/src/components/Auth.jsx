@@ -93,7 +93,7 @@ export default function Auth() {
   // ── "Check your email" screen ─────────────────────────────────────────────
   if (verifyPending) {
     return (
-      <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
+      <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
         <BgOrbs />
         <div className="relative z-10 w-full max-w-md text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -102,16 +102,16 @@ export default function Auth() {
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-white mb-2">Check your email</h2>
-          <p className="text-slate-400 text-sm mb-1">We sent a verification link to</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Check your email</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">We sent a verification link to</p>
           <p className="text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
-          <p className="text-slate-600 text-xs mb-8">
+          <p className="text-slate-600 dark:text-slate-400 text-xs mb-8">
             Click the link in the email to activate your account.<br />
             It may take a minute to arrive.
           </p>
           <button
             onClick={() => { setVerifyPending(null); setMode('login') }}
-            className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+            className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors"
           >
             ← Back to sign in
           </button>
@@ -144,14 +144,14 @@ export default function Auth() {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-black tracking-tight">
-            <span className="text-white">Mock</span>
+            <span className="text-slate-900 dark:text-white">Mock</span>
             <span className="gradient-text">Mate</span>
           </h1>
-          <p className="text-slate-500 text-sm mt-2">AI-Powered Voice Interview Practice</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">AI-Powered Voice Interview Practice</p>
         </div>
 
         {/* Card */}
-        <div className="glass border border-slate-700/40 rounded-3xl p-8 shadow-2xl"
+        <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl"
           style={{ boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 25px 50px rgba(0,0,0,0.5)' }}>
 
           {/* Mode tabs */}
@@ -166,7 +166,7 @@ export default function Auth() {
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   mode === t.key
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}
               >
                 {t.label}
@@ -179,7 +179,7 @@ export default function Auth() {
             {/* Name — register only */}
             {mode === 'register' && (
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-1.5">Full Name</label>
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Full Name</label>
                 <input
                   type="text"
                   required
@@ -187,14 +187,14 @@ export default function Auth() {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full bg-slate-900/70 border border-slate-700/60 rounded-2xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                  className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
                 />
               </div>
             )}
 
             {/* Email */}
             <div>
-              <label className="block text-slate-300 text-sm font-semibold mb-1.5">Email</label>
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Email</label>
               <input
                 type="email"
                 required
@@ -202,16 +202,16 @@ export default function Auth() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="jane@example.com"
-                className="w-full bg-slate-900/70 border border-slate-700/60 rounded-2xl px-4 py-3 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-slate-300 text-sm font-semibold mb-1.5">
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">
                 Password
                 {mode === 'register' && (
-                  <span className="ml-2 text-slate-500 font-normal text-xs">min. 6 characters</span>
+                  <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal text-xs">min. 6 characters</span>
                 )}
               </label>
               <div className="relative">
@@ -222,7 +222,7 @@ export default function Auth() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-900/70 border border-slate-700/60 rounded-2xl px-4 py-3 pr-11 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                  className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
                 />
                 <button
                   type="button"
@@ -239,7 +239,7 @@ export default function Auth() {
             {/* Confirm Password — register only */}
             {mode === 'register' && (
               <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
+                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
                 <div className="relative">
                   <input
                     type={showConfirmPass ? 'text' : 'password'}
@@ -248,7 +248,7 @@ export default function Auth() {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className={`w-full bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
+                    className={`w-full bg-white dark:bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
                       confirmPassword && confirmPassword !== password
                         ? 'border-red-500/60 focus:ring-red-500/40 focus:border-red-500/50'
                         : confirmPassword && confirmPassword === password
@@ -277,9 +277,9 @@ export default function Auth() {
 
             {/* Email verification notice — register only */}
             {mode === 'register' && (
-              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-700/40 rounded-2xl px-4 py-3">
+              <div className="flex items-start gap-2.5 bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
                 <span className="text-base mt-0.5">📧</span>
-                <p className="text-slate-500 text-xs leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   We'll send a verification link to your email address to activate your account.
                 </p>
               </div>
@@ -313,7 +313,7 @@ export default function Auth() {
           </form>
 
           {/* Switch mode link */}
-          <p className="text-center text-slate-600 text-sm mt-5">
+          <p className="text-center text-slate-600 dark:text-slate-400 text-sm mt-5">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}

@@ -7,8 +7,8 @@ const isVerified = (user) => user?.email_verified === true
 
 function Section({ title, children }) {
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-6 space-y-5">
-      <p className="text-white font-bold text-base border-b border-slate-800/60 pb-3">{title}</p>
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 space-y-5">
+      <p className="text-slate-900 dark:text-white font-bold text-base border-b border-slate-200 dark:border-slate-800/60 pb-3">{title}</p>
       {children}
     </div>
   )
@@ -17,9 +17,9 @@ function Section({ title, children }) {
 function Field({ label, hint, children }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-slate-300 text-sm font-semibold">
+      <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold">
         {label}
-        {hint && <span className="ml-2 text-slate-600 font-normal text-xs">{hint}</span>}
+        {hint && <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal text-xs">{hint}</span>}
       </label>
       {children}
     </div>
@@ -35,7 +35,7 @@ function Input({ type = 'text', value, onChange, placeholder, autoComplete, righ
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full bg-slate-900/70 border border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all pr-11"
+        className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all pr-11"
       />
       {right && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2">{right}</div>
@@ -54,7 +54,7 @@ function PasswordInput({ value, onChange, placeholder, autoComplete }) {
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full bg-slate-900/70 border border-slate-700/60 rounded-xl px-4 py-2.5 pr-11 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+        className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
       />
       <button
         type="button"
@@ -240,7 +240,7 @@ export default function Settings({ onNavigate }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="animate-orb absolute top-0 right-0 w-96 h-96 rounded-full bg-emerald-500/6 blur-3xl" />
       </div>
@@ -251,15 +251,15 @@ export default function Settings({ onNavigate }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => onNavigate('dashboard')}
-            className="text-slate-500 hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-800/60"
+            className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div>
-            <h1 className="text-2xl font-black text-white">Account Settings</h1>
-            <p className="text-slate-500 text-sm mt-0.5">{user?.email}</p>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">Account Settings</h1>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">{user?.email}</p>
           </div>
         </div>
 
@@ -273,7 +273,7 @@ export default function Settings({ onNavigate }) {
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"
                 autoComplete="name"
-                className="w-full bg-slate-900/70 border border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
               />
             </Field>
             <Field label="Email">
@@ -282,7 +282,7 @@ export default function Settings({ onNavigate }) {
                   type="text"
                   value={user?.email || ''}
                   disabled
-                  className="flex-1 bg-slate-900/30 border border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-500 text-sm cursor-not-allowed"
+                  className="flex-1 bg-slate-100/60 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-600 dark:text-slate-400 text-sm cursor-not-allowed"
                 />
                 {isVerified(user) ? (
                   <span className="text-emerald-400 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
@@ -303,7 +303,7 @@ export default function Settings({ onNavigate }) {
               {/* Resend option for unverified accounts */}
               {!isVerified(user) && (
                 <div className="mt-2 space-y-2">
-                  <p className="text-slate-600 text-xs">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs">
                     Your email is not verified. Click below to receive a new verification link.
                   </p>
                   {resendMsg && (
@@ -364,7 +364,7 @@ export default function Settings({ onNavigate }) {
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder="new@example.com"
                 autoComplete="email"
-                className="w-full bg-slate-900/70 border border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
               />
             </Field>
             {emailMsg && (

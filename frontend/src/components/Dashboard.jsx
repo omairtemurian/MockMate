@@ -10,6 +10,7 @@ import {
   scoreBg, scoreColor, scoreHex, aiColor, aiBg,
   formatDate, formatShort, difficultyBadge, typeBadge, langInfo, avgArr,
 } from '../utils/scoring'
+import { IconList, IconStar, IconTarget, IconTrophy, IconFlame, IconGlobe, IconBarChart, IconMic } from '../utils/icons'
 
 // ── Practice streak ───────────────────────────────────────────────────────────
 function calcStreak(sessions) {
@@ -66,15 +67,15 @@ const TOOLTIP_STYLE = {
 }
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
-function StatCard({ icon, label, value, sub, color = 'text-white' }) {
+function StatCard({ icon, label, value, sub, color = 'text-slate-900 dark:text-white' }) {
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-5 space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-base">{icon}</span>
-        <span className="text-slate-500 text-xs font-semibold uppercase tracking-wide">{label}</span>
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5 space-y-2">
+      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        {icon}
+        <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
       </div>
       <p className={`text-2xl font-black ${color}`}>{value}</p>
-      {sub && <p className="text-slate-600 text-xs">{sub}</p>}
+      {sub && <p className="text-slate-500 dark:text-slate-400 text-xs">{sub}</p>}
     </div>
   )
 }
@@ -93,18 +94,18 @@ function ScoreChart({ sessions }) {
     }))
 
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-6 h-full">
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 h-full">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-white font-bold">Score Progression</p>
+        <p className="text-slate-900 dark:text-white font-bold">Score Progression</p>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-emerald-500 inline-block rounded" /> Content</span>
           <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-violet-400 inline-block rounded" /> AI /10</span>
         </div>
       </div>
-      <p className="text-slate-600 text-xs mb-4">Last {data.length} interviews (AI score ÷10 for scale)</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-4">Last {data.length} interviews (AI score ÷10 for scale)</p>
 
       {data.length < 2 ? (
-        <div className="flex items-center justify-center h-36 text-slate-600 text-sm">Complete more interviews to see your trend</div>
+        <div className="flex items-center justify-center h-36 text-slate-600 dark:text-slate-400 text-sm">Complete more interviews to see your trend</div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
@@ -141,11 +142,11 @@ function SkillBenchmark({ sessions }) {
   ]
 
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-6 h-full">
-      <p className="text-white font-bold mb-1">Skill Benchmark</p>
-      <p className="text-slate-600 text-xs mb-2">Averaged across all sessions</p>
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 h-full">
+      <p className="text-slate-900 dark:text-white font-bold mb-1">Skill Benchmark</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-2">Averaged across all sessions</p>
       {!valid.length ? (
-        <div className="flex items-center justify-center h-48 text-slate-600 text-sm">Complete interviews to see your skills</div>
+        <div className="flex items-center justify-center h-48 text-slate-600 dark:text-slate-400 text-sm">Complete interviews to see your skills</div>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={200}>
@@ -160,7 +161,7 @@ function SkillBenchmark({ sessions }) {
             {skillData.map(d => (
               <div key={d.skill} className="text-center">
                 <p className="text-emerald-400 text-xs font-bold">{d.value}</p>
-                <p className="text-slate-600 text-xs">{d.skill}</p>
+                <p className="text-slate-600 dark:text-slate-400 text-xs">{d.skill}</p>
               </div>
             ))}
           </div>
@@ -173,25 +174,25 @@ function SkillBenchmark({ sessions }) {
 // ── Breakdown section ─────────────────────────────────────────────────────────
 function BreakdownCard({ title, icon, rows }) {
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-5">
-      <p className="text-white font-bold text-sm mb-3">{icon} {title}</p>
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
+      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm mb-3">{icon}<span>{title}</span></div>
       {rows.length === 0 ? (
-        <p className="text-slate-600 text-xs">No data yet</p>
+        <p className="text-slate-600 dark:text-slate-400 text-xs">No data yet</p>
       ) : (
         <div className="space-y-2.5">
           {rows.map(r => (
             <div key={r.label} className="space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 flex items-center gap-1.5">
+                <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                   {r.flag && <span>{r.flag}</span>}
                   <span>{r.label}</span>
-                  <span className="text-slate-600">×{r.count}</span>
+                  <span className="text-slate-600 dark:text-slate-400">×{r.count}</span>
                 </span>
                 {r.avg != null && (
                   <span className={`font-bold ${scoreColor(r.avg)}`}>{r.avg.toFixed(1)}/10</span>
                 )}
               </div>
-              <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${(r.count / rows[0].count) * 100}%`, background: scoreHex(r.avg || 5) }}
@@ -228,13 +229,13 @@ function ActivityHeatmap({ sessions }) {
   }).length
 
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-5">
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white font-bold">Activity — Last 30 Days</p>
-          <p className="text-slate-600 text-xs mt-0.5">{activeDays} active day{activeDays !== 1 ? 's' : ''} · {totalThisMonth} session{totalThisMonth !== 1 ? 's' : ''} this month</p>
+          <p className="text-slate-900 dark:text-white font-bold">Activity — Last 30 Days</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">{activeDays} active day{activeDays !== 1 ? 's' : ''} · {totalThisMonth} session{totalThisMonth !== 1 ? 's' : ''} this month</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-600">
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
           <span>Less</span>
           {['bg-slate-800/60','bg-emerald-500/30','bg-emerald-500/60','bg-emerald-500'].map((c,i) => (
             <div key={i} className={`w-3.5 h-3.5 rounded-sm ${c}`} />
@@ -256,7 +257,7 @@ function ActivityHeatmap({ sessions }) {
         })}
       </div>
       {/* Day labels */}
-      <div className="flex justify-between mt-1.5 text-slate-700 text-xs px-0.5">
+      <div className="flex justify-between mt-1.5 text-slate-400 dark:text-slate-700 text-xs px-0.5">
         <span>{days[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
         <span>{days[14].toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
         <span>Today</span>
@@ -268,21 +269,21 @@ function ActivityHeatmap({ sessions }) {
 // ── Filler words panel ────────────────────────────────────────────────────────
 function FillerWordsPanel({ fillers }) {
   if (!fillers.length) return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full">
-      <p className="text-slate-500 text-sm font-semibold mb-1">🗣 Filler Words</p>
-      <p className="text-slate-600 text-xs">No filler word data yet.<br/>Complete interviews to track habits.</p>
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full">
+      <p className="text-slate-600 dark:text-slate-400 text-sm font-semibold mb-1">🗣 Filler Words</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs">No filler word data yet.<br/>Complete interviews to track habits.</p>
     </div>
   )
 
   const max = fillers[0].count
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-5">
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white font-bold">🗣 Filler Words</p>
-          <p className="text-slate-600 text-xs mt-0.5">Most-used across all sessions</p>
+          <p className="text-slate-900 dark:text-white font-bold">🗣 Filler Words</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Most-used across all sessions</p>
         </div>
-        <span className="text-slate-500 text-xs">{fillers.reduce((a,f) => a+f.count, 0)} total</span>
+        <span className="text-slate-600 dark:text-slate-400 text-xs">{fillers.reduce((a,f) => a+f.count, 0)} total</span>
       </div>
       <div className="space-y-2.5">
         {fillers.map((f, i) => (
@@ -290,14 +291,14 @@ function FillerWordsPanel({ fillers }) {
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 {i === 0 && <span className="text-red-400 font-black text-xs">#{i+1}</span>}
-                {i > 0  && <span className="text-slate-600 text-xs">#{i+1}</span>}
+                {i > 0  && <span className="text-slate-600 dark:text-slate-400 text-xs">#{i+1}</span>}
                 <span className="text-orange-300 font-semibold">"{f.word}"</span>
               </div>
               <span className={`font-bold ${i === 0 ? 'text-red-400' : i <= 2 ? 'text-orange-400' : 'text-slate-400'}`}>
                 ×{f.count}
               </span>
             </div>
-            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${i === 0 ? 'bg-red-500' : i <= 2 ? 'bg-orange-400' : 'bg-slate-500'}`}
                 style={{ width: `${(f.count / max) * 100}%` }}
@@ -398,7 +399,7 @@ export default function Dashboard({ onNavigate }) {
   })).sort((a, b) => { const ord = { Junior:0, Mid:1, Senior:2 }; return ord[a.label]-ord[b.label] })
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="animate-orb absolute top-0 right-0 w-96 h-96 rounded-full bg-emerald-500/6 blur-3xl" />
         <div className="animate-orb-r absolute bottom-0 left-0 w-80 h-80 rounded-full bg-cyan-500/5 blur-3xl" />
@@ -409,15 +410,15 @@ export default function Dashboard({ onNavigate }) {
         {/* ── Header ── */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-white">Hi, {firstName} 👋</h1>
-            <p className="text-slate-500 text-sm mt-1">Get ready to ace your next interview</p>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white">Hi, {firstName} 👋</h1>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Get ready to ace your next interview</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => onNavigate('landing')}
               className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-5 py-2.5 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/30 whitespace-nowrap text-sm"
             >
-              <span>🎙</span> Start Interview
+              <IconMic className="w-4 h-4" /> Start Interview
             </button>
           </div>
         </div>
@@ -430,10 +431,10 @@ export default function Dashboard({ onNavigate }) {
             </div>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="glass border border-slate-700/40 rounded-2xl p-12 flex flex-col items-center gap-4 text-center">
-            <span className="text-5xl">🎙</span>
-            <p className="text-white font-bold text-lg">No interviews yet</p>
-            <p className="text-slate-500 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
+          <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-12 flex flex-col items-center gap-4 text-center">
+            <IconMic className="w-12 h-12 text-emerald-500/60" />
+            <p className="text-slate-900 dark:text-white font-bold text-lg">No interviews yet</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs">Complete your first interview and your results will appear here.</p>
             <button onClick={() => onNavigate('landing')} className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold px-6 py-2.5 rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-500/30 text-sm">
               Start your first interview
             </button>
@@ -442,17 +443,17 @@ export default function Dashboard({ onNavigate }) {
           <>
             {/* ── Step 1: Stats (6 cards) ── */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <StatCard icon="📋" label="Sessions"    value={sessions.length}  sub={thisMonth ? `${thisMonth} this month · ${durationLabel(totalSeconds)}` : durationLabel(totalSeconds)} />
-              <StatCard icon="⭐" label="Avg Score"   value={avgScore ? `${avgScore.toFixed(1)}/10` : '–'} sub="Content quality" color={avgScore ? scoreColor(avgScore) : 'text-slate-500'} />
-              <StatCard icon="🤖" label="Avg AI"      value={avgAI != null ? `${avgAI}` : '–'} sub="/100 overall" color={avgAI != null ? aiColor(avgAI) : 'text-slate-500'} />
+              <StatCard icon={<IconList className="w-4 h-4" />}    label="Sessions"      value={sessions.length}  sub={thisMonth ? `${thisMonth} this month · ${durationLabel(totalSeconds)}` : durationLabel(totalSeconds)} />
+              <StatCard icon={<IconStar className="w-4 h-4" />}    label="Avg Score"     value={avgScore ? `${avgScore.toFixed(1)}/10` : '–'} sub="Content quality" color={avgScore ? scoreColor(avgScore) : 'text-slate-500'} />
+              <StatCard icon={<IconTarget className="w-4 h-4" />}  label="Avg AI"        value={avgAI != null ? `${avgAI}` : '–'} sub="/100 overall" color={avgAI != null ? aiColor(avgAI) : 'text-slate-500'} />
               <StatCard
-                icon="🏆" label="Best Session"
+                icon={<IconTrophy className="w-4 h-4" />} label="Best Session"
                 value={bestSession ? parseFloat(bestSession.overall_score).toFixed(1) : '–'}
                 sub={bestSession ? (bestSession.role?.split('–')[0]?.trim() || 'Interview') : 'No data yet'}
                 color="text-amber-400"
               />
               <StatCard
-                icon="🔥" label="Streak"
+                icon={<IconFlame className="w-4 h-4" />} label="Streak"
                 value={streak ? `${streak}d` : '–'}
                 sub={streak ? `${streak} day${streak > 1 ? 's' : ''} in a row` : 'Practice daily!'}
                 color={streak >= 3 ? 'text-orange-400' : streak >= 1 ? 'text-yellow-400' : 'text-slate-500'}
@@ -470,31 +471,31 @@ export default function Dashboard({ onNavigate }) {
 
             {/* ── Step 2: Breakdowns (language / type / difficulty) ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <BreakdownCard title="By Language"   icon="🌐" rows={byLanguage} />
-              <BreakdownCard title="By Type"       icon="🎯" rows={byType} />
-              <BreakdownCard title="By Difficulty" icon="📊" rows={byDifficulty} />
+              <BreakdownCard title="By Language"   icon={<IconGlobe className="w-4 h-4" />}    rows={byLanguage} />
+              <BreakdownCard title="By Type"       icon={<IconTarget className="w-4 h-4" />}   rows={byType} />
+              <BreakdownCard title="By Difficulty" icon={<IconBarChart className="w-4 h-4" />} rows={byDifficulty} />
             </div>
 
             {/* ── Step 4: Filler words ── */}
             <FillerWordsPanel fillers={fillers} />
 
             {/* ── Recent sessions teaser ── */}
-            <div className="glass border border-slate-700/40 rounded-2xl p-5">
+            <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-white font-bold">Recent Sessions</p>
+                <p className="text-slate-900 dark:text-white font-bold">Recent Sessions</p>
                 <button onClick={() => onNavigate('sessions')} className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold transition-colors">
                   View all {sessions.length} →
                 </button>
               </div>
               <div className="space-y-2">
                 {recent.map(s => (
-                  <div key={s.id} className="flex items-center gap-3 py-2 border-b border-slate-800/60 last:border-0 group">
+                  <div key={s.id} className="flex items-center gap-3 py-2 border-b border-slate-200 dark:border-slate-800/60 last:border-0 group">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 border ${scoreBg(s.overall_score)}`}>
                       {s.overall_score != null ? parseFloat(s.overall_score).toFixed(1) : '–'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-slate-200 text-sm font-semibold truncate">{s.role || 'Interview'}</p>
-                      <p className="text-slate-500 text-xs">{formatDate(s.created_at)} · {s.difficulty || 'Mid'} · {langInfo(s.language||'en-US').flag}</p>
+                      <p className="text-slate-700 dark:text-slate-200 text-sm font-semibold truncate">{s.role || 'Interview'}</p>
+                      <p className="text-slate-600 dark:text-slate-400 text-xs">{formatDate(s.created_at)} · {s.difficulty || 'Mid'} · {langInfo(s.language||'en-US').flag}</p>
                     </div>
                     {s.ai_score != null && (
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${aiBg(s.ai_score)}`}>AI {Math.round(s.ai_score)}</span>
@@ -524,7 +525,7 @@ export default function Dashboard({ onNavigate }) {
 
             {/* ── Refresh footer ── */}
             <div className="flex items-center justify-between pt-2">
-              <p className="text-slate-700 text-xs">
+              <p className="text-slate-400 dark:text-slate-700 text-xs">
                 {lastRefreshed
                   ? `Updated ${lastRefreshed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
                   : 'Loading…'}
@@ -532,7 +533,7 @@ export default function Dashboard({ onNavigate }) {
               <button
                 onClick={() => refresh(true)}
                 disabled={refreshing}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-200 text-xs font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-800/60 border border-slate-700/40 disabled:opacity-40"
+                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100/80 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 disabled:opacity-40"
               >
                 <svg className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

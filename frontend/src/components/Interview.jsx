@@ -8,21 +8,19 @@ import { analyzeAnswer, getHints, wpmColor, durationLabel } from '../utils/speec
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 const MicIcon = () => (
-  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+    <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/>
   </svg>
 )
 
 const CameraIcon = ({ on }) => on ? (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
   </svg>
 ) : (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2zM3 3l18 18" />
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2zM3 3l18 18"/>
   </svg>
 )
 
@@ -87,7 +85,7 @@ function VideoAvatar({ status, compact = false }) {
         </div>
       </div>
       <div className={compact ? '' : 'text-center'}>
-        <p className={`text-white font-bold tracking-wide ${compact ? 'text-xs' : 'text-sm'}`}>Alex — Interviewer</p>
+        <p className={`text-slate-900 dark:text-white font-bold tracking-wide ${compact ? 'text-xs' : 'text-sm'}`}>Alex — Interviewer</p>
         <div className={`flex items-center gap-1.5 mt-0.5 text-xs font-medium transition-colors duration-300 ${compact ? '' : 'justify-center'} ${
           status === 'speaking'  ? 'text-emerald-400' :
           status === 'listening' ? 'text-red-400'     :
@@ -118,16 +116,16 @@ function HintCard({ hints, analytics, questionIndex }) {
           <span className="text-slate-600 text-xs">{open ? '▲' : '▼'}</span>
         </button>
         {open && (
-          <div className="px-4 pb-4 space-y-3 border-t border-slate-700/30 pt-3">
+          <div className="px-4 pb-4 space-y-3 border-t border-slate-200 dark:border-slate-700/30 pt-3">
             <div className="flex flex-wrap gap-2 text-xs">
-              {analytics.durationSeconds > 0 && <span className="bg-slate-800/80 rounded-full px-2.5 py-1 text-slate-300">⏱ {durationLabel(analytics.durationSeconds)}</span>}
-              {analytics.wpm > 0 && <span className={`bg-slate-800/80 rounded-full px-2.5 py-1 ${wpmColor(analytics.wpm)}`}>{analytics.wpm} wpm</span>}
-              {analytics.totalFillers > 0 && <span className="bg-slate-800/80 rounded-full px-2.5 py-1 text-orange-400">{analytics.totalFillers} filler{analytics.totalFillers > 1 ? 's' : ''}</span>}
-              {isBehavioral && <span className={`bg-slate-800/80 rounded-full px-2.5 py-1 ${analytics.starScore === 4 ? 'text-emerald-400' : analytics.starScore >= 2 ? 'text-yellow-400' : 'text-red-400'}`}>STAR {analytics.starScore}/4</span>}
+              {analytics.durationSeconds > 0 && <span className="bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 text-slate-700 dark:text-slate-300">⏱ {durationLabel(analytics.durationSeconds)}</span>}
+              {analytics.wpm > 0 && <span className={`bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 ${wpmColor(analytics.wpm)}`}>{analytics.wpm} wpm</span>}
+              {analytics.totalFillers > 0 && <span className="bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 text-orange-400">{analytics.totalFillers} filler{analytics.totalFillers > 1 ? 's' : ''}</span>}
+              {isBehavioral && <span className={`bg-slate-100 dark:bg-slate-800/80 rounded-full px-2.5 py-1 ${analytics.starScore === 4 ? 'text-emerald-400' : analytics.starScore >= 2 ? 'text-yellow-400' : 'text-red-400'}`}>STAR {analytics.starScore}/4</span>}
             </div>
             {hints.map((hint, i) => (
               <div key={i} className="space-y-1">
-                <p className="text-slate-300 text-xs leading-relaxed">{iconMap[hint.type] || '💡'} {hint.text}</p>
+                <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed">{iconMap[hint.type] || '💡'} {hint.text}</p>
                 {hint.better && <p className="text-emerald-400 text-xs leading-relaxed pl-3 border-l-2 border-emerald-500/40">Better: {hint.better}</p>}
               </div>
             ))}
@@ -473,7 +471,7 @@ export default function Interview({ sessionData, onComplete }) {
   const progressPct = Math.round((currentQuestionIndex / questions.length) * 100)
 
   return (
-    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden relative">
       {/* Background orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="animate-orb absolute top-0 right-0 w-72 h-72 rounded-full bg-emerald-500/6 blur-3xl" />
@@ -481,21 +479,21 @@ export default function Interview({ sessionData, onComplete }) {
       </div>
 
       {/* ── Header ── */}
-      <header className="relative z-10 glass border-b border-slate-700/50 px-4 py-3 flex flex-col gap-2">
+      <header className="relative z-10 glass border-b border-slate-200 dark:border-slate-700/50 px-4 py-3 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           {/* Left: logo + meta */}
           <div className="flex items-center gap-3">
             <span className="font-black text-lg">
-              <span className="text-white">Mock</span><span className="gradient-text">Mate</span>
+              <span className="text-slate-900 dark:text-white">Mock</span><span className="gradient-text">Mate</span>
             </span>
-            <span className="hidden sm:block text-slate-600 text-xs border border-slate-700/60 rounded-full px-2 py-0.5">{difficulty}</span>
-            <span className="hidden sm:block text-slate-400 text-sm truncate max-w-[180px]">— {role}</span>
+            <span className="hidden sm:block text-slate-500 dark:text-slate-600 text-xs border border-slate-200 dark:border-slate-700/60 rounded-full px-2 py-0.5">{difficulty}</span>
+            <span className="hidden sm:block text-slate-600 dark:text-slate-400 text-sm truncate max-w-[180px]">— {role}</span>
           </div>
 
           {/* Right: timer + controls + Q counter */}
           <div className="flex items-center gap-2">
             {/* Elapsed timer */}
-            <div className="hidden sm:flex items-center gap-1.5 text-slate-500 text-xs font-mono bg-slate-800/60 border border-slate-700/40 rounded-full px-2.5 py-1">
+            <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-500 text-xs font-mono bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 rounded-full px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {fmtTime(elapsedSeconds)}
             </div>
@@ -511,15 +509,11 @@ export default function Interview({ sessionData, onComplete }) {
               📝
             </button>
 
-            {/* Question counter */}
-            <span className="bg-emerald-500/15 text-emerald-400 font-bold text-sm px-3 py-1 rounded-full border border-emerald-500/25">
-              {Math.min(currentQuestionIndex + 1, questions.length)}/{questions.length}
-            </span>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700"
             style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg,#10b981,#06b6d4)', boxShadow: '0 0 8px rgba(16,185,129,0.6)' }} />
         </div>
@@ -536,7 +530,7 @@ export default function Interview({ sessionData, onComplete }) {
 
       <div className="flex-1 flex flex-col lg:flex-row gap-0 overflow-hidden relative z-10">
         {/* ── Left panel ── */}
-        <div className="lg:w-72 glass-light border-b lg:border-b-0 lg:border-r border-slate-700/40
+        <div className="lg:w-72 glass-light border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700/40
           flex flex-row lg:flex-col items-center justify-between lg:justify-center
           py-3 px-4 lg:py-8 lg:px-6 gap-3 lg:gap-6">
 
@@ -569,7 +563,7 @@ export default function Interview({ sessionData, onComplete }) {
                 <div key={i} className={`rounded-full transition-all duration-500 ${
                   i < currentQuestionIndex  ? 'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-emerald-400 shadow-sm shadow-emerald-500/50' :
                   i === currentQuestionIndex ? 'w-2.5 h-2.5 lg:w-3 lg:h-3 bg-emerald-400 ring-2 ring-emerald-400/30 shadow-md shadow-emerald-500/50' :
-                  'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-slate-700'
+                  'w-2 h-2 lg:w-2.5 lg:h-2.5 bg-slate-300 dark:bg-slate-700'
                 }`} />
               ))}
             </div>
@@ -582,8 +576,8 @@ export default function Interview({ sessionData, onComplete }) {
 
           {/* Live Coach label — desktop only */}
           <div className="hidden lg:block text-center space-y-1 px-2">
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">Live Coach</p>
-            <p className="text-slate-600 text-xs leading-relaxed">Instant feedback appears after each answer</p>
+            <p className="text-slate-600 dark:text-slate-500 text-xs font-semibold uppercase tracking-widest">Live Coach</p>
+            <p className="text-slate-600 dark:text-slate-600 text-xs leading-relaxed">Instant feedback appears after each answer</p>
           </div>
         </div>
 
@@ -599,7 +593,7 @@ export default function Interview({ sessionData, onComplete }) {
                   <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-br from-emerald-500/25 to-teal-500/20 text-emerald-100 border border-emerald-500/25'
-                      : 'glass-light text-slate-200 border border-slate-700/40'
+                      : 'glass-light text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/40'
                   }`}>
                     {msg.role === 'assistant' && <p className="text-xs text-emerald-400/70 mb-1 font-bold tracking-wide">ALEX</p>}
                     {msg.content}
@@ -620,7 +614,7 @@ export default function Interview({ sessionData, onComplete }) {
           </div>
 
           {/* ── Bottom controls ── */}
-          <div className="border-t border-slate-700/40 glass px-4 sm:px-6 py-4 sm:py-5">
+          <div className="border-t border-slate-200 dark:border-slate-700/40 glass px-4 sm:px-6 py-4 sm:py-5">
             {error && (
               <div className="mb-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-2 text-red-400 text-sm text-center">
                 {error}
@@ -631,56 +625,38 @@ export default function Interview({ sessionData, onComplete }) {
               <AudioWaveform active={isListening} />
 
               {/* Mic + Camera row */}
-              <div className="flex items-center gap-6 sm:gap-8">
-                {/* Camera button */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <button
-                    onClick={toggleWebcam}
-                    title={webcamStream ? 'Turn off camera' : 'Turn on camera for posture & eye contact analysis'}
-                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-200 select-none
-                      ${webcamStream
-                        ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-xl shadow-blue-500/40 hover:scale-105'
-                        : 'glass-light border border-slate-700/60 text-slate-400 hover:text-slate-200 hover:border-slate-500 hover:scale-105'
-                      }`}
-                  >
-                    <CameraIcon on={!!webcamStream} />
-                  </button>
-                  <span className={`text-[10px] font-semibold tracking-wide ${webcamStream ? 'text-blue-400' : 'text-slate-600'}`}>
-                    {webcamStream ? 'Camera On' : 'Camera'}
-                  </span>
-                </div>
+              <div className="flex items-center gap-4 sm:gap-5">
+                {/* Camera — small minimal button */}
+                <button
+                  onClick={toggleWebcam}
+                  title={webcamStream ? 'Turn off camera' : 'Turn on camera'}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 border ${
+                    webcamStream
+                      ? 'bg-blue-500/15 border-blue-500/35 text-blue-400'
+                      : 'bg-slate-100/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500'
+                  }`}
+                >
+                  <CameraIcon on={!!webcamStream} />
+                </button>
 
-                {/* Mic button */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-                    <CountdownRing seconds={countdown} total={90} visible={isListening} />
-                    {status === 'idle' && (
-                      <>
-                        <span className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-emerald-500/20 animate-ping" style={{ animationDuration: '2s' }} />
-                        <span className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-emerald-500/10 animate-ping" style={{ animationDuration: '2.5s' }} />
-                      </>
-                    )}
-                    <button
-                      onMouseDown={handleMicDown} onMouseUp={handleMicUp}
-                      onTouchStart={(e) => { e.preventDefault(); handleMicDown() }}
-                      onTouchEnd={(e)   => { e.preventDefault(); handleMicUp()   }}
-                      disabled={micDisabled}
-                      className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-200 select-none z-10
-                        ${isListening
-                          ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white btn-recording scale-110'
-                          : isSpeaking || isThinking
-                          ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                          : 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-105 animate-idle-ring'
-                        }`}
-                    >
-                      <MicIcon />
-                    </button>
-                  </div>
-                  <span className={`text-[10px] font-semibold tracking-wide ${
-                    isListening ? 'text-red-400' : isSpeaking ? 'text-slate-600' : isThinking ? 'text-yellow-400' : 'text-slate-500'
-                  }`}>
-                    {isListening ? 'Listening...' : isSpeaking ? 'Alex speaking' : isThinking ? 'Thinking...' : 'Hold to speak'}
-                  </span>
+                {/* Mic — primary action */}
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+                  <CountdownRing seconds={countdown} total={90} visible={isListening} />
+                  <button
+                    onMouseDown={handleMicDown} onMouseUp={handleMicUp}
+                    onTouchStart={(e) => { e.preventDefault(); handleMicDown() }}
+                    onTouchEnd={(e)   => { e.preventDefault(); handleMicUp()   }}
+                    disabled={micDisabled}
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 select-none z-10 ${
+                      isListening
+                        ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white btn-recording scale-105'
+                        : isSpeaking || isThinking
+                        ? 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                        : 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 hover:scale-105'
+                    }`}
+                  >
+                    <MicIcon />
+                  </button>
                 </div>
               </div>
 

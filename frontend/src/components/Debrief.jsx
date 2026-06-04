@@ -87,7 +87,7 @@ function OverallScoreBadge({ score }) {
 function StarTracker({ star }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-slate-500 text-xs font-semibold">STAR:</span>
+      <span className="text-slate-600 dark:text-slate-400 text-xs font-semibold">STAR:</span>
       {[
         ["situation", "S"],
         ["task", "T"],
@@ -117,28 +117,28 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
   return (
-    <div className="glass border border-slate-700/40 rounded-2xl p-4 space-y-3">
-      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-4 space-y-3">
+      <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest">
         Speech Analytics
       </p>
       <div className="flex flex-wrap gap-2.5">
         {analytics.durationSeconds > 0 && (
           <div className="flex flex-col items-center bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in">
-            <span className="text-slate-200 font-bold text-sm">
+            <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
               {durationLabel(analytics.durationSeconds)}
             </span>
-            <span className="text-slate-600 text-xs mt-0.5">Duration</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Duration</span>
           </div>
         )}
         {analytics.wpm > 0 && (
           <div
-            className="flex flex-col items-center bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
+            className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
             style={{ animationDelay: "0.05s" }}
           >
             <span className={`font-bold text-sm ${wpmColor(analytics.wpm)}`}>
               {analytics.wpm}
             </span>
-            <span className="text-slate-600 text-xs mt-0.5">wpm</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">wpm</span>
           </div>
         )}
         <div
@@ -150,23 +150,23 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
           >
             {analytics.totalFillers}
           </span>
-          <span className="text-slate-600 text-xs mt-0.5">Fillers</span>
+          <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Fillers</span>
         </div>
         {analytics.wordCount > 0 && (
           <div
-            className="flex flex-col items-center bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
+            className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
             style={{ animationDelay: "0.15s" }}
           >
-            <span className="text-slate-200 font-bold text-sm">
+            <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
               {analytics.wordCount}
             </span>
-            <span className="text-slate-600 text-xs mt-0.5">Words</span>
+            <span className="text-slate-600 dark:text-slate-400 text-xs mt-0.5">Words</span>
           </div>
         )}
       </div>
       {topFillers.length > 0 && (
         <div>
-          <p className="text-xs text-slate-600 mb-1.5">Top filler words:</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1.5">Top filler words:</p>
           <div className="flex flex-wrap gap-2">
             {topFillers.map(([word, count]) => (
               <span
@@ -181,7 +181,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
       )}
       {isBehavioral && analytics.star && <StarTracker star={analytics.star} />}
       {analytics.wpm > 0 && (
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           {analytics.wpm < 100
             ? "A bit slow — aim for 120–160 wpm."
             : analytics.wpm > 180
@@ -197,7 +197,7 @@ function AnswerCard({ item, index, role, onRetry }) {
   const [showIdeal, setShowIdeal] = useState(false);
   return (
     <div
-      className="glass border border-slate-700/40 rounded-3xl p-4 sm:p-6 space-y-4 hover:border-slate-600/60 transition-all duration-300 animate-fade-up"
+      className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-4 sm:p-6 space-y-4 hover:border-slate-400 dark:hover:border-slate-600/60 transition-all duration-300 animate-fade-up"
       style={{ animationDelay: `${index * 0.08}s` }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -205,25 +205,25 @@ function AnswerCard({ item, index, role, onRetry }) {
           <p className="text-xs text-emerald-400/70 font-bold uppercase tracking-widest mb-1.5">
             Question {index + 1}
           </p>
-          <p className="text-slate-200 font-semibold text-sm leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-200 font-semibold text-sm leading-relaxed">
             {item.question}
           </p>
         </div>
         <ScoreBadge score={item.score} />
       </div>
 
-      <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/60">
-        <p className="text-xs text-slate-500 font-semibold mb-1.5">
+      <div className="bg-slate-100/60 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-800/60">
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-1.5">
           Your Answer Summary
         </p>
-        <p className="text-slate-300 text-sm leading-relaxed">
+        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
           {item.answer_summary}
         </p>
       </div>
 
       <div>
-        <p className="text-xs text-slate-500 font-semibold mb-1.5">Feedback</p>
-        <p className="text-slate-300 text-sm leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-1.5">Feedback</p>
+        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
           {item.feedback}
         </p>
       </div>
@@ -240,7 +240,7 @@ function AnswerCard({ item, index, role, onRetry }) {
         <div>
           <button
             onClick={() => setShowIdeal((o) => !o)}
-            className="w-full flex items-center justify-between px-4 py-2.5 glass-light border border-slate-700/40 rounded-2xl text-sm text-slate-400 hover:border-amber-500/30 hover:text-slate-300 transition-all"
+            className="w-full flex items-center justify-between px-4 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-sm text-slate-600 dark:text-slate-400 hover:border-amber-500/30 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
           >
             <span className="flex items-center gap-2">
               <span>⭐</span>{" "}
@@ -269,7 +269,7 @@ function AnswerCard({ item, index, role, onRetry }) {
       {/* Retry button */}
       <button
         onClick={() => onRetry(item.question, item.score)}
-        className="w-full flex items-center justify-center gap-2 py-2.5 glass-light border border-slate-700/40 rounded-2xl text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 text-xs font-semibold transition-all"
+        className="w-full flex items-center justify-center gap-2 py-2.5 glass-light border border-slate-200 dark:border-slate-700/40 rounded-2xl text-slate-600 dark:text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 text-xs font-semibold transition-all"
       >
         🔄 Retry this question
       </button>
@@ -347,19 +347,19 @@ function OverallSpeechSummary({ qaPairs, sessionDuration }) {
 
   return (
     <div
-      className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up"
+      className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up"
       style={{ animationDelay: "0.1s" }}
     >
-      <p className="text-white font-bold text-lg">🗣 Speech Performance</p>
+      <p className="text-slate-900 dark:text-white font-bold text-lg">🗣 Speech Performance</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-slate-900/60 rounded-2xl p-4 text-center animate-stat-in"
+            className="bg-slate-100/80 dark:bg-slate-900/60 rounded-2xl p-4 text-center animate-stat-in"
             style={{ animationDelay: `${i * 0.07}s` }}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-slate-600 text-xs mt-1">{s.label}</p>
+            <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">{s.label}</p>
           </div>
         ))}
       </div>
@@ -388,11 +388,11 @@ function AnswerLengthChart({ answers }) {
   if (data.every((d) => d.words === 0)) return null;
   return (
     <div
-      className="glass border border-slate-700/40 rounded-3xl p-6 animate-fade-up"
+      className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 animate-fade-up"
       style={{ animationDelay: "0.15s" }}
     >
-      <p className="text-white font-bold mb-1">📊 Answer Length</p>
-      <p className="text-slate-600 text-xs mb-4">Bar colour = content score</p>
+      <p className="text-slate-900 dark:text-white font-bold mb-1">📊 Answer Length</p>
+      <p className="text-slate-600 dark:text-slate-400 text-xs mb-4">Bar colour = content score</p>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart
           data={data}
@@ -621,66 +621,32 @@ function BodyLanguageCard({ metrics }) {
         : `Strong body language overall — consistent eye contact and stable posture.`;
 
   return (
-    <div
-      className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up"
-      style={{ animationDelay: "0.12s" }}
-    >
+    <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up" style={{ animationDelay: "0.12s" }}>
       <div className="flex items-center justify-between">
-        <p className="text-white font-bold text-lg">👁 Body Language</p>
-        <span className={`text-2xl font-black ${confColor}`}>
-          {conf.toFixed(1)}
-          <span className="text-slate-600 text-sm font-normal">/10</span>
-        </span>
+        <p className="text-slate-900 dark:text-white font-bold text-lg">👁 Body Language</p>
+        <span className={`text-2xl font-black ${confColor}`}>{conf.toFixed(1)}<span className="text-slate-600 text-sm font-normal">/10</span></span>
       </div>
       <div className="space-y-3">
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-400 font-semibold">Eye Contact</span>
-            <span
-              className={
-                eyePct >= 70
-                  ? "text-emerald-400"
-                  : eyePct >= 40
-                    ? "text-amber-400"
-                    : "text-red-400"
-              }
-            >
-              {eyePct}%
-            </span>
+            <span className="text-slate-600 dark:text-slate-400 font-semibold">Eye Contact</span>
+            <span className={eyePct >= 70 ? "text-emerald-400" : eyePct >= 40 ? "text-amber-400" : "text-red-400"}>{eyePct}%</span>
           </div>
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${eyeColor}`}
-              style={{ width: `${eyePct}%` }}
-            />
+          <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-700 ${eyeColor}`} style={{ width: `${eyePct}%` }} />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-400 font-semibold">Head Stability</span>
-            <span
-              className={
-                headPct >= 70
-                  ? "text-emerald-400"
-                  : headPct >= 40
-                    ? "text-amber-400"
-                    : "text-red-400"
-              }
-            >
-              {headPct}%
-            </span>
+            <span className="text-slate-600 dark:text-slate-400 font-semibold">Head Stability</span>
+            <span className={headPct >= 70 ? "text-emerald-400" : headPct >= 40 ? "text-amber-400" : "text-red-400"}>{headPct}%</span>
           </div>
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${headColor}`}
-              style={{ width: `${headPct}%` }}
-            />
+          <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-700 ${headColor}`} style={{ width: `${headPct}%` }} />
           </div>
         </div>
       </div>
-      <p className="text-slate-400 text-sm leading-relaxed border-t border-slate-700/40 pt-3">
-        {tip}
-      </p>
+      <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed border-t border-slate-200 dark:border-slate-700/40 pt-3">{tip}</p>
     </div>
   );
 }
@@ -880,17 +846,17 @@ export default function Debrief({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
         <BgOrbs />
         <div className="relative z-10 flex flex-col items-center gap-4">
           <div className="relative w-20 h-20">
             <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 animate-ping" />
             <div className="w-20 h-20 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
           </div>
-          <p className="text-slate-300 text-xl font-bold">
+          <p className="text-slate-600 dark:text-slate-300 text-xl font-bold">
             Preparing your debrief...
           </p>
-          <p className="text-slate-600 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             Analysing content &amp; speech patterns
           </p>
         </div>
@@ -900,7 +866,7 @@ export default function Debrief({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 px-4 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-4 px-4 relative overflow-hidden">
         <BgOrbs />
         <div className="relative z-10 glass border border-red-500/25 rounded-3xl p-8 text-center max-w-md">
           <p className="text-4xl mb-4">😕</p>
@@ -917,7 +883,7 @@ export default function Debrief({
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 py-6 sm:py-10 px-3 sm:px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-6 sm:py-10 px-3 sm:px-4 relative overflow-hidden">
       <BgOrbs />
 
       {/* Hidden share card (captured off-screen) */}
@@ -945,18 +911,18 @@ export default function Debrief({
           <p className="text-emerald-400 text-sm font-bold uppercase tracking-widest mb-2">
             ✅ Interview Complete
           </p>
-          <h1 className="text-4xl font-black text-white mb-2">
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-2">
             Your Full Debrief
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             {role} ·{" "}
-            <span className="text-slate-600">{difficulty || "Mid"} level</span>
+            <span className="text-slate-600 dark:text-slate-400">{difficulty || "Mid"} level</span>
           </p>
         </div>
 
         {/* Overall score */}
         <div
-          className="glass border border-slate-700/40 rounded-3xl p-6 sm:p-10 flex flex-col items-center gap-6 animate-fade-up"
+          className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 sm:p-10 flex flex-col items-center gap-6 animate-fade-up"
           style={{
             animationDelay: "0.05s",
             boxShadow: "0 0 60px rgba(16,185,129,0.08)",
@@ -964,8 +930,8 @@ export default function Debrief({
         >
           <OverallScoreBadge score={debrief.overall_score} />
           <div className="text-center max-w-lg">
-            <p className="text-white font-bold text-lg mb-2">Content Score</p>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-slate-900 dark:text-white font-bold text-lg mb-2">Content Score</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               {debrief.summary}
             </p>
           </div>
@@ -973,13 +939,13 @@ export default function Debrief({
 
         {/* AI Scoring Section */}
         <div
-          className="glass border border-slate-700/40 rounded-3xl p-6 sm:p-8 mt-10 animate-fade-up"
+          className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 sm:p-8 mt-10 animate-fade-up"
           style={{
             animationDelay: "0.15s",
             boxShadow: "0 0 60px rgba(16,185,129,0.08)",
           }}
         >
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             AI Score: {scoring.finalScore}/100
           </h2>
 
@@ -997,14 +963,14 @@ export default function Debrief({
             {scoring.detailed.map((item, index) => (
               <div
                 key={index}
-                className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 shadow-inner"
+                className="bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 shadow-inner"
               >
-                <h4 className="text-white font-semibold text-lg mb-2">
+                <h4 className="text-slate-900 dark:text-white font-semibold text-lg mb-2">
                   Answer {index + 1}:{" "}
                   <span className="text-emerald-400">{item.score}/20</span>
                 </h4>
 
-                <ul className="list-disc ml-6 text-slate-400 text-sm space-y-1">
+                <ul className="list-disc ml-6 text-slate-600 dark:text-slate-400 text-sm space-y-1">
                   {item.tips.map((tip, i) => (
                     <li key={i}>{tip}</li>
                   ))}
@@ -1022,12 +988,12 @@ export default function Debrief({
 
         {/* Interview recording replay */}
         {recording && (
-          <div className="glass border border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up">
+          <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up">
             <div>
-              <p className="text-white font-bold text-lg">
+              <p className="text-slate-900 dark:text-white font-bold text-lg">
                 🎥 Interview Recording
               </p>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
                 Review your webcam recording from this interview session.
               </p>
             </div>
@@ -1041,7 +1007,7 @@ export default function Debrief({
             <a
               href={recording}
               download={`MockMate-recording-${new Date().toISOString().slice(0, 10)}.webm`}
-              className="inline-flex items-center justify-center gap-2 glass-light border border-slate-700/50 hover:border-emerald-500/40 text-slate-300 hover:text-emerald-400 font-semibold px-5 py-3 rounded-2xl transition-all"
+              className="inline-flex items-center justify-center gap-2 glass-light border border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/40 text-slate-600 dark:text-slate-300 hover:text-emerald-400 font-semibold px-5 py-3 rounded-2xl transition-all"
             >
               ⬇️ Download Recording
             </a>
@@ -1063,7 +1029,7 @@ export default function Debrief({
             <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-3">
               🏆 Top Strength
             </p>
-            <p className="text-slate-200 text-sm leading-relaxed">
+            <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
               {debrief.top_strength}
             </p>
           </div>
@@ -1074,7 +1040,7 @@ export default function Debrief({
             <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-3">
               🎯 Top Improvement
             </p>
-            <p className="text-slate-200 text-sm leading-relaxed">
+            <p className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed">
               {debrief.top_improvement}
             </p>
           </div>
@@ -1083,7 +1049,7 @@ export default function Debrief({
         {/* Answer breakdown */}
         <div>
           <h2
-            className="text-white font-black text-xl mb-4 animate-fade-up"
+            className="text-slate-900 dark:text-white font-black text-xl mb-4 animate-fade-up"
             style={{ animationDelay: "0.25s" }}
           >
             Answer Breakdown
@@ -1110,7 +1076,7 @@ export default function Debrief({
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="flex items-center justify-center gap-2 glass border border-slate-700/50 hover:border-slate-600 disabled:opacity-50 text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-800/60"
+          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
         >
           {sharing ? (
             <svg
@@ -1142,7 +1108,7 @@ export default function Debrief({
         <button
           onClick={handleExportPDF}
           disabled={exporting}
-          className="flex items-center justify-center gap-2 glass border border-slate-700/50 hover:border-slate-600 disabled:opacity-50 text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-800/60"
+          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
         >
           {exporting ? (
             <svg
