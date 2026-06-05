@@ -2,6 +2,7 @@ import os
 import hmac
 import hashlib
 import base64
+import json
 
 import httpx
 from fastapi import APIRouter, HTTPException, Depends, Request, Header
@@ -12,11 +13,11 @@ from database import db
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
-POLAR_ACCESS_TOKEN  = os.getenv("POLAR_ACCESS_TOKEN", "")
-POLAR_PRODUCT_ID    = os.getenv("POLAR_PRODUCT_ID", "")
+POLAR_ACCESS_TOKEN   = os.getenv("POLAR_ACCESS_TOKEN", "")
+POLAR_PRODUCT_ID     = os.getenv("POLAR_PRODUCT_ID", "")
 POLAR_WEBHOOK_SECRET = os.getenv("POLAR_WEBHOOK_SECRET", "")
-FRONTEND_URL        = os.getenv("FRONTEND_URL", "http://localhost:5173")
-POLAR_API_BASE      = "https://api.polar.sh"
+FRONTEND_URL         = os.getenv("FRONTEND_URL", "http://localhost:5173")
+POLAR_API_BASE       = "https://api.polar.sh"
 
 
 def _verify_polar_signature(raw_body: bytes, webhook_id: str, webhook_timestamp: str, webhook_signature: str) -> bool:
@@ -34,7 +35,6 @@ def _verify_polar_signature(raw_body: bytes, webhook_id: str, webhook_timestamp:
         hmac.new(secret_bytes, msg.encode("utf-8"), hashlib.sha256).digest()
     ).decode("utf-8")
 
-    # Header may contain multiple space-separated "v1,<sig>" entries
     sigs = [s.split(",", 1)[1] for s in webhook_signature.split(" ") if "," in s]
     return any(hmac.compare_digest(expected, s) for s in sigs)
 
@@ -44,26 +44,37 @@ async def create_checkout(creds: HTTPAuthorizationCredentials = Depends(bearer))
     user_id = decode_token(creds.credentials)
 
     if not POLAR_ACCESS_TOKEN or not POLAR_PRODUCT_ID:
-        raise HTTPException(status_code=503, detail="Billing not configured")
+        # 422 (not 5xx) so Render's proxy doesn't strip CORS headers
+        raise HTTPException(status_code=422, detail="Billing not configured — contact support")
 
-    async with httpx.AsyncClient(timeout=15) as client:
-        resp = await client.post(
-            f"{POLAR_API_BASE}/v1/checkouts/custom/",
-            headers={
-                "Authorization": f"Bearer {POLAR_ACCESS_TOKEN}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "product_id": POLAR_PRODUCT_ID,
-                "success_url": f"{FRONTEND_URL}?checkout=success",
-                "metadata": {"user_id": user_id},
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"{POLAR_API_BASE}/v1/checkouts/custom/",
+                headers={
+                    "Authorization": f"Bearer {POLAR_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "product_id": POLAR_PRODUCT_ID,
+                    "success_url": f"{FRONTEND_URL}?checkout=success",
+                    "metadata": {"user_id": user_id},
+                },
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=408, detail="Checkout request timed out — please try again")
+    except Exception:
+        raise HTTPException(status_code=422, detail="Could not reach billing service — please try again")
 
     if resp.status_code not in (200, 201):
-        raise HTTPException(status_code=502, detail="Failed to create checkout session")
+        raise HTTPException(status_code=422, detail=f"Checkout failed (Polar {resp.status_code}) — check your Polar product ID")
 
-    return {"url": resp.json()["url"]}
+    data = resp.json()
+    url = data.get("url") or data.get("checkout_url")
+    if not url:
+        raise HTTPException(status_code=422, detail="No checkout URL returned from Polar")
+
+    return {"url": url}
 
 
 @router.post("/webhook")
@@ -75,17 +86,13 @@ async def polar_webhook(
 ):
     raw_body = await request.body()
 
-    # Verify signature when secret is configured
     if POLAR_WEBHOOK_SECRET:
         if not all([webhook_id, webhook_timestamp, webhook_signature]):
             raise HTTPException(status_code=400, detail="Missing webhook headers")
         if not _verify_polar_signature(raw_body, webhook_id, webhook_timestamp, webhook_signature):
             raise HTTPException(status_code=403, detail="Invalid webhook signature")
 
-    payload = request.app.state  # avoid double-read; parse from raw
-    import json as _json
-    payload = _json.loads(raw_body)
-
+    payload    = json.loads(raw_body)
     event_type = payload.get("type", "")
     data       = payload.get("data", {})
     meta       = data.get("metadata") or {}
