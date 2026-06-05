@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { wpmColor, durationLabel } from "../utils/speechAnalytics";
 import { saveSession } from "../utils/history";
-import { saveSessionToDB } from '../utils/api'
+import { saveSessionToDB } from "../utils/api";
 import RetryModal from "./RetryModal";
 import { scoreAllAnswers } from "../utils/scoring";
 import { BACKEND_URL } from "../utils/config";
@@ -595,14 +595,30 @@ function BodyLanguageCard({ metrics }) {
   const headPct = metrics.headStabilityPct;
   const conf = metrics.confidenceScore;
 
-  const eyeColor = eyePct >= 70 ? "bg-emerald-500" : eyePct >= 40 ? "bg-amber-400" : "bg-red-500";
-  const headColor = headPct >= 70 ? "bg-emerald-500" : headPct >= 40 ? "bg-amber-400" : "bg-red-500";
-  const confColor = conf >= 7 ? "text-emerald-400" : conf >= 4 ? "text-amber-400" : "text-red-400";
-  const tip = eyePct < 50
-    ? `Try to keep your eyes on the camera — you maintained eye contact only ${eyePct}% of the time.`
-    : headPct < 50
-      ? `Work on keeping your head still and upright — steady posture reads as more confident.`
-      : `Strong body language overall — consistent eye contact and stable posture.`;
+  const eyeColor =
+    eyePct >= 70
+      ? "bg-emerald-500"
+      : eyePct >= 40
+        ? "bg-amber-400"
+        : "bg-red-500";
+  const headColor =
+    headPct >= 70
+      ? "bg-emerald-500"
+      : headPct >= 40
+        ? "bg-amber-400"
+        : "bg-red-500";
+  const confColor =
+    conf >= 7
+      ? "text-emerald-400"
+      : conf >= 4
+        ? "text-amber-400"
+        : "text-red-400";
+  const tip =
+    eyePct < 50
+      ? `Try to keep your eyes on the camera — you maintained eye contact only ${eyePct}% of the time.`
+      : headPct < 50
+        ? `Work on keeping your head still and upright — steady posture reads as more confident.`
+        : `Strong body language overall — consistent eye contact and stable posture.`;
 
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-6 space-y-4 animate-fade-up" style={{ animationDelay: "0.12s" }}>
@@ -666,40 +682,73 @@ export default function Debrief({
   useEffect(() => {
     const fetchDebrief = async () => {
       try {
-        const cleanPairs = qaPairs.map(({ question, answer }) => ({
-          question: question || '',
-          answer: answer || '',
-        })).filter(p => p.question);
+        // :one: Clean Q/A pairs and prevent empty payload
+        const cleanPairs = qaPairs
+          .map(({ question, answer }) => ({
+            question: question || "",
+            answer: answer || "",
+          }))
+          .filter((p) => p.question && p.answer);
+
+        if (cleanPairs.length === 0) {
+          setError("No valid answers found.");
+          setLoading(false);
+          return;
+        } // :two: Normalize language (backend expects en-US, de-DE, fr-FR)
+
+        const normalizedLang = language.includes("-")
+          ? language
+          : `${language}-US`; // :three: Ensure role is always a string (backend requires it)
+
+        const safeRole = role || "General";
+
         const res = await fetch(`${BACKEND_URL}/debrief`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ qa_pairs: cleanPairs, role, language }),
+          body: JSON.stringify({
+            qa_pairs: cleanPairs,
+            role: safeRole,
+            language: normalizedLang,
+          }),
         });
+
         if (!res.ok) throw new Error("Failed to get debrief");
+
         const data = await res.json();
+
         if (data.answers) {
           data.answers = data.answers.map((a, i) => ({
             ...a,
             analytics: qaPairs[i]?.analytics || null,
           }));
         }
+
         setDebrief(data);
+
         saveSession({
-          role,
+          role: safeRole,
           difficulty: difficulty || "Mid",
           overall_score: data.overall_score,
           answerCount: data.answers?.length || qaPairs.length,
           duration: duration || 0,
         });
-        // Also persist to PostgreSQL (fire-and-forget — won't block the UI)
+
         if (!savedToDB.current) {
           savedToDB.current = true;
-          saveSessionToDB(data, qaPairs, role, difficulty, interviewType, duration, {
-            faceMetrics:   faceMetrics,
-            language:      language,
-            aiScore:       scoring.finalScore,
-            aiVerdict:     scoring.verdict,
-          });
+          saveSessionToDB(
+            data,
+            qaPairs,
+            safeRole,
+            difficulty,
+            interviewType,
+            duration,
+            {
+              faceMetrics: faceMetrics,
+              language: normalizedLang,
+              aiScore: scoring.finalScore,
+              aiVerdict: scoring.verdict,
+            },
+          );
         }
       } catch {
         setError(
@@ -709,6 +758,7 @@ export default function Debrief({
         setLoading(false);
       }
     };
+
     fetchDebrief();
   }, [qaPairs, role, difficulty, duration]);
 
@@ -899,9 +949,13 @@ export default function Debrief({
             AI Score: {scoring.finalScore}/100
           </h2>
 
-          <p className={scoring.verdict.startsWith("Accepted")
-            ? "text-lg font-semibold text-emerald-400 mb-6"
-            : "text-lg font-semibold text-red-500 mb-6"}>
+          <p
+            className={
+              scoring.verdict.startsWith("Accepted")
+                ? "text-lg font-semibold text-emerald-400 mb-6"
+                : "text-lg font-semibold text-red-500 mb-6"
+            }
+          >
             {scoring.verdict}
           </p>
 
