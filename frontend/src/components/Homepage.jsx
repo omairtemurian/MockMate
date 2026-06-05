@@ -20,6 +20,7 @@ const FEATURES = [
     ),
     title: 'Voice Interview Practice',
     desc: 'Answer questions out loud just like a real interview. Hold to speak, release to submit — no typing.',
+    pro: false,
   },
   {
     icon: (
@@ -30,6 +31,7 @@ const FEATURES = [
     ),
     title: 'Live AI Coaching',
     desc: 'Instant hints after each answer: STAR framework coverage, pacing tips, filler word count.',
+    pro: false,
   },
   {
     icon: (
@@ -39,6 +41,7 @@ const FEATURES = [
     ),
     title: 'Speech Analytics',
     desc: 'Track words per minute, filler word habits, answer duration, and STAR completion per question.',
+    pro: false,
   },
   {
     icon: (
@@ -47,7 +50,8 @@ const FEATURES = [
       </svg>
     ),
     title: 'Body Language Analysis',
-    desc: 'Optional webcam analysis of eye contact, head posture, and facial confidence shown in your debrief.',
+    desc: 'Webcam-based eye contact, head posture, and facial confidence scoring shown in your debrief.',
+    pro: true,
   },
   {
     icon: (
@@ -57,7 +61,8 @@ const FEATURES = [
       </svg>
     ),
     title: '5 Interview Modes',
-    desc: 'Full interview, behavioral, technical, screening call, or focused practice by topic — your choice.',
+    desc: 'Full interview, behavioral, technical, screening call, or focused practice by topic.',
+    pro: false,
   },
   {
     icon: (
@@ -69,7 +74,29 @@ const FEATURES = [
     ),
     title: 'Debrief Reports',
     desc: 'Per-question scores, written feedback, model answers, and PDF export after every session.',
+    pro: false,
   },
+]
+
+const FREE_FEATURES = [
+  '3 mock interviews per day',
+  'English language only',
+  'AI scoring & written feedback',
+  'Speech analytics (WPM, fillers)',
+  '3 interview modes',
+  'Session history & dashboard',
+]
+
+const PRO_FEATURES = [
+  '20 AI mock interviews per month',
+  'English, French & German',
+  'Up to 5 resume analyses with Professional AI',
+  'All 5 interview modes',
+  'Facial recognition & body language analysis',
+  'Detailed feedback with ideal answers',
+  'Video recording & playback',
+  'PDF export of debrief reports',
+  'Priority AI responses',
 ]
 
 const STEPS = [
@@ -89,6 +116,14 @@ const STEPS = [
     desc: 'Get per-question scores, written feedback, speech analytics, and model answers instantly.',
   },
 ]
+
+function CheckIcon({ color = 'emerald' }) {
+  return (
+    <svg className={`w-4 h-4 text-${color}-400 flex-shrink-0 mt-0.5`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
 
 export default function Homepage({ onLogin, onRegister }) {
   const { theme, toggleTheme } = useTheme()
@@ -192,9 +227,14 @@ export default function Homepage({ onLogin, onRegister }) {
           {FEATURES.map((f, i) => (
             <div
               key={f.title}
-              className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 space-y-3 animate-fade-up hover:border-emerald-500/20 transition-all"
+              className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 space-y-3 animate-fade-up hover:border-emerald-500/20 transition-all relative overflow-hidden"
               style={{ animationDelay: `${0.04 * i}s` }}
             >
+              {f.pro && (
+                <span className="absolute top-3 right-3 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full">
+                  PRO
+                </span>
+              )}
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                 {f.icon}
               </div>
@@ -202,6 +242,93 @@ export default function Homepage({ onLogin, onRegister }) {
               <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{f.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Pricing ── */}
+      <section className="relative z-10 px-6 pb-24 max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mb-3">Simple pricing</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-base">Start free. Upgrade when you're ready.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+
+          {/* Free card */}
+          <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 space-y-6">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Free</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-slate-900 dark:text-white">$0</span>
+                <span className="text-slate-500 text-sm">/ forever</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-1">No credit card required</p>
+            </div>
+
+            <ul className="space-y-3">
+              {FREE_FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300">
+                  <CheckIcon />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={onRegister}
+              className="w-full py-3 rounded-2xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold text-sm hover:border-emerald-500/40 hover:text-emerald-500 transition-all"
+            >
+              Get Started Free
+            </button>
+          </div>
+
+          {/* Pro card */}
+          <div
+            className="relative rounded-3xl p-8 space-y-6 border border-emerald-500/30"
+            style={{
+              background: theme === 'dark'
+                ? 'rgba(15,23,42,0.97)'
+                : 'rgba(253,248,240,0.97)',
+              boxShadow: '0 0 60px rgba(16,185,129,0.10), 0 4px 32px rgba(16,185,129,0.08)',
+            }}
+          >
+            {/* Popular badge */}
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg shadow-emerald-500/30">
+                Most Popular
+              </span>
+            </div>
+
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-amber-500 mb-2">Pro</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-slate-900 dark:text-white">$9</span>
+                <span className="text-slate-500 text-sm">/ month</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-1">Cancel any time · No hidden fees</p>
+            </div>
+
+            <ul className="space-y-3">
+              {PRO_FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-200">
+                  <CheckIcon color="emerald" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={onRegister}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 hover:scale-[1.02] transition-all"
+            >
+              Start with Pro →
+            </button>
+
+            <p className="text-center text-xs text-slate-500">
+              Secure checkout via <span className="font-semibold text-slate-400">Polar</span> · Powered by Stripe
+            </p>
+          </div>
+
         </div>
       </section>
 
