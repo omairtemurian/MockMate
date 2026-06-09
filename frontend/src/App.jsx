@@ -17,6 +17,7 @@ import ErrorBoundary    from './components/ErrorBoundary'
 import CookieBanner     from './components/CookieBanner'
 import AIConsentModal   from './components/AIConsentModal'
 import AdminPanel       from './components/AdminPanel'
+import OnboardingModal, { shouldShowOnboarding } from './components/OnboardingModal'
 
 function TopControls({ belowHeader, user, onUpgradeClick }) {
   const { theme, toggleTheme } = useTheme()
@@ -68,10 +69,17 @@ function AppInner() {
   const [recording,        setRecording]        = useState(null)
   const [banner,           setBanner]           = useState(null)
   const [showAIConsent,    setShowAIConsent]    = useState(false)
+  const [showOnboarding,   setShowOnboarding]   = useState(false)
+  const [settingsTab,      setSettingsTab]      = useState('profile')
 
   // Show AI consent modal once for users who haven't decided yet
   useEffect(() => {
     if (user && user.ai_consent == null) setShowAIConsent(true)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Show onboarding once for new users
+  useEffect(() => {
+    if (user && shouldShowOnboarding()) setShowOnboarding(true)
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Wake up the Render backend immediately so it's ready when the user acts
@@ -167,7 +175,7 @@ function AppInner() {
   }
 
   // Interview and debrief are full-screen — no sidebar
-  const sidebarViews = ['dashboard', 'sessions', 'landing', 'cv', 'settings', 'admin']
+  const sidebarViews = ['dashboard', 'sessions', 'landing', 'settings', 'admin']
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -183,8 +191,14 @@ function AppInner() {
         />
       )}
 
-      {showProModal   && <ProModal onClose={() => setShowProModal(false)} />}
-      {showAIConsent  && <AIConsentModal onClose={() => setShowAIConsent(false)} />}
+      {showProModal    && <ProModal onClose={() => setShowProModal(false)} />}
+      {showAIConsent   && <AIConsentModal onClose={() => setShowAIConsent(false)} />}
+      {showOnboarding  && (
+        <OnboardingModal
+          onUploadCV={() => { setShowOnboarding(false); setSettingsTab('cv'); setView('settings') }}
+          onSkip={() => setShowOnboarding(false)}
+        />
+      )}
 
       {/* Global notification banner (e.g. email changed redirect) */}
       {banner && (
@@ -204,7 +218,7 @@ function AppInner() {
       }`}>
         {view === 'dashboard' && <Dashboard  onNavigate={setView} />}
         {view === 'sessions'  && <Sessions   onNavigate={setView} />}
-        {view === 'settings'  && <Settings   onNavigate={setView} />}
+        {view === 'settings'  && <Settings initialTab={settingsTab} />}
         {view === 'admin'     && user?.is_admin && <AdminPanel />}
         {view === 'cv'        && <CVProfile user={user} onUpgrade={() => setShowProModal(true)} />}
         {view === 'landing'   && <Landing   onStart={handleStart} user={user} onUpgrade={() => setShowProModal(true)} />}
