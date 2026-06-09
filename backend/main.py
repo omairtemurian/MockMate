@@ -8,7 +8,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from rate_limit import limiter
 from auth import router as auth_router, get_current_user
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional, Any
 from openai import OpenAI
@@ -132,52 +132,53 @@ def check_ai_consent(user_id: str):
 # --- Request models ---
 
 class ParseJDRequest(BaseModel):
-    jd_text: str
-    cv_text: Optional[str] = None
+    jd_text: str = Field(..., max_length=20000)
+    cv_text: Optional[str] = Field(None, max_length=20000)
     difficulty: Optional[str] = "Mid"
-    company_name: Optional[str] = None
+    company_name: Optional[str] = Field(None, max_length=200)
     interview_type: Optional[str] = "full"
     language: Optional[str] = "en-US"
 
 
 class QuestionBankRequest(BaseModel):
-    category: str
+    category: str = Field(..., max_length=200)
     difficulty: Optional[str] = "Mid"
     language: Optional[str] = "en-US"
 
 
 class Message(BaseModel):
     role: str
-    content: str
+    content: str = Field(..., max_length=5000)
 
 
 class RespondRequest(BaseModel):
     history: List[Message]
-    user_answer: str
+    user_answer: str = Field(..., max_length=5000)
     current_question_index: int
     questions: List[str]
-    role: Optional[str] = "the position"
-    cv_summary: Optional[str] = None
+    role: Optional[str] = Field("the position", max_length=200)
+    cv_summary: Optional[str] = Field(None, max_length=5000)
     difficulty: Optional[str] = "Mid"
     allow_followup: Optional[bool] = True
     language: Optional[str] = "en-US"
 
 
 class QAPair(BaseModel):
-    question: str
-    answer: str
+    question: str = Field(..., max_length=2000)
+    answer: str = Field(..., max_length=5000)
 
 
 class DebriefRequest(BaseModel):
     qa_pairs: List[QAPair]
-    role: Optional[str] = "the position"
+    role: Optional[str] = Field("the position", max_length=200)
     language: Optional[str] = "en-US"
 
 
 # --- Endpoints ---
 
 @app.post("/extract-cv")
-async def extract_cv(file: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def extract_cv(request: Request, file: UploadFile = File(...)):
     filename = file.filename.lower()
     file_bytes = await file.read()
 
@@ -192,8 +193,8 @@ async def extract_cv(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to read file — try a different format")
 
     if not raw_text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from the file. Try a different format.")
@@ -203,7 +204,8 @@ async def extract_cv(file: UploadFile = File(...)):
 
 
 @app.post("/extract-text")
-async def extract_text(file: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def extract_text(request: Request, file: UploadFile = File(...)):
     filename = file.filename.lower()
     file_bytes = await file.read()
     try:
@@ -217,8 +219,8 @@ async def extract_text(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to read file — try a different format")
 
     if not raw_text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from the file. Try a different format.")
@@ -268,8 +270,8 @@ async def parse_jd(req: ParseJDRequest, current_user: dict = Depends(get_current
     try:
         raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=1200)
         data = extract_json(raw)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to generate questions — please try again")
 
     role = data.get("role", "the position")
     candidate_name = data.get("candidate_name", "Candidate")
@@ -299,7 +301,8 @@ async def parse_jd(req: ParseJDRequest, current_user: dict = Depends(get_current
 
 
 @app.post("/question-bank")
-async def question_bank(req: QuestionBankRequest):
+@limiter.limit("10/minute")
+async def question_bank(request: Request, req: QuestionBankRequest, current_user: dict = Depends(get_current_user)):
     if not req.category.strip():
         raise HTTPException(status_code=400, detail="category is required")
 
@@ -316,8 +319,8 @@ async def question_bank(req: QuestionBankRequest):
     try:
         raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
         data = extract_json(raw)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to generate questions — please try again")
 
     questions = data.get("questions", [])
     if len(questions) < 5:
@@ -341,7 +344,8 @@ async def question_bank(req: QuestionBankRequest):
 
 
 @app.post("/respond")
-async def respond(req: RespondRequest):
+@limiter.limit("30/minute")
+async def respond(request: Request, req: RespondRequest, current_user: dict = Depends(get_current_user)):
     role = req.role or "the position"
     idx  = req.current_question_index
     difficulty = req.difficulty or "Mid"
@@ -376,8 +380,8 @@ async def respond(req: RespondRequest):
         messages.append({"role": "user", "content": f"[Candidate answer]: {req.user_answer}\n\n[Instruction]: {instruction}"})
         try:
             reply = chat(client, MODEL, messages, max_tokens=80).strip()
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        except Exception:
+            raise HTTPException(status_code=500, detail="Failed to get interviewer response — please try again")
         return {"reply": reply, "done": False, "followup": True}
 
     if idx < len(req.questions) - 1:
@@ -396,14 +400,15 @@ async def respond(req: RespondRequest):
 
     try:
         reply = chat(client, MODEL, messages, max_tokens=300).strip()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to get interviewer response — please try again")
 
     done = idx >= len(req.questions) - 1
     return {"reply": reply, "done": done, "followup": False}
 
 
 MAX_RECORDING_SIZE = 50 * 1024 * 1024  # 50 MB
+MAX_CV_SIZE        = 10 * 1024 * 1024  # 10 MB
 
 @app.post("/upload-recording")
 async def upload_recording(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
@@ -426,6 +431,8 @@ async def upload_cv_profile(file: UploadFile = File(...), current_user: dict = D
     filename = file.filename or ""
     fname_lower = filename.lower()
     file_bytes = await file.read()
+    if len(file_bytes) > MAX_CV_SIZE:
+        raise HTTPException(status_code=413, detail="CV file too large (max 10 MB)")
 
     try:
         if fname_lower.endswith(".pdf"):
@@ -438,8 +445,8 @@ async def upload_cv_profile(file: UploadFile = File(...), current_user: dict = D
             raise HTTPException(status_code=400, detail="Unsupported file type. Use PDF, DOCX, or TXT.")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to read file — try a different format")
 
     if not raw_text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from the file.")
@@ -454,8 +461,8 @@ async def upload_cv_profile(file: UploadFile = File(...), current_user: dict = D
         prompt = CV_PARSE_PROMPT.format(cv_text=cv_text_trimmed)
         raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=2000)
         parsed = extract_json(raw)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse CV: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to parse CV — please try again")
 
     try:
         upsert_user(user_id)
@@ -498,8 +505,8 @@ async def analyse_cv(current_user: dict = Depends(get_current_user)):
         prompt = CV_ANALYSIS_PROMPT.format(cv_text=cv_text)
         raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=1000)
         data = extract_json(raw)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Analysis failed — please try again")
 
     return data
 
@@ -526,14 +533,15 @@ async def debrief(req: DebriefRequest, current_user: dict = Depends(get_current_
     try:
         raw = chat(client, MODEL, messages, max_tokens=4000)
         data = extract_json(raw)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to generate debrief — please try again")
 
     return data
 
 
 @app.post("/tts")
-async def text_to_speech(request: Request):
+@limiter.limit("20/minute")
+async def text_to_speech(request: Request, current_user: dict = Depends(get_current_user)):
     body = await request.json()
     text = (body.get("text") or "").strip()
     if not text:
@@ -564,14 +572,15 @@ async def text_to_speech(request: Request):
 # ── Session / Dashboard endpoints ─────────────────────────────────────────────
 
 class AnswerIn(BaseModel):
-    question_index: int
-    question:       str
-    answer:         str
-    score:          Optional[float] = None
-    feedback:       Optional[str]   = None
-    tip:            Optional[str]   = None
-    ideal_answer:   Optional[str]   = None
-    analytics:      Optional[Any]   = None
+    question_index:  int
+    question:        str = Field(..., max_length=2000)
+    answer:          str = Field(..., max_length=5000)
+    score:           Optional[float] = None
+    feedback:        Optional[str]   = Field(None, max_length=2000)
+    tip:             Optional[str]   = Field(None, max_length=1000)
+    ideal_answer:    Optional[str]   = Field(None, max_length=2000)
+    analytics:       Optional[Any]   = None
+    ai_answer_score: Optional[float] = None
 
 
 class FaceMetricsIn(BaseModel):
@@ -582,20 +591,20 @@ class FaceMetricsIn(BaseModel):
 
 
 class SaveSessionRequest(BaseModel):
-    role:             Optional[str]        = "the position"
+    role:             Optional[str]   = Field("the position", max_length=200)
     difficulty:       Optional[str]        = "Mid"
     interview_type:   Optional[str]        = "full"
     overall_score:    Optional[float]      = None
     duration_seconds: Optional[int]        = 0
-    summary:          Optional[str]        = None
-    top_strength:     Optional[str]        = None
-    top_improvement:  Optional[str]        = None
+    summary:          Optional[str]   = Field(None, max_length=5000)
+    top_strength:     Optional[str]   = Field(None, max_length=500)
+    top_improvement:  Optional[str]   = Field(None, max_length=500)
     answers:          List[AnswerIn]       = []
     language:         Optional[str]        = "en-US"
-    company_name:     Optional[str]        = None
-    candidate_name:   Optional[str]        = None
+    company_name:     Optional[str]   = Field(None, max_length=200)
+    candidate_name:   Optional[str]   = Field(None, max_length=200)
     ai_score:         Optional[float]      = None
-    ai_verdict:       Optional[str]        = None
+    ai_verdict:       Optional[str]   = Field(None, max_length=200)
     face_metrics:     Optional[FaceMetricsIn] = None
 
 
@@ -627,8 +636,8 @@ def create_session(req: SaveSessionRequest, current_user: dict = Depends(get_cur
             face_samples_count    = fm.face_samples_count,
         )
         return {"session_id": session_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to save session")
 
 
 @app.get("/sessions")
@@ -639,8 +648,8 @@ def list_sessions(current_user: dict = Depends(get_current_user)):
             if s.get("created_at"):
                 s["created_at"] = s["created_at"].isoformat()
         return {"sessions": sessions}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve sessions")
 
 
 @app.get("/sessions/filler-stats")
@@ -669,8 +678,8 @@ def filler_stats(current_user: dict = Depends(get_current_user)):
 
         top = sorted(totals.items(), key=lambda x: x[1], reverse=True)[:8]
         return {"fillers": [{"word": w, "count": c} for w, c in top]}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve stats")
 
 
 @app.get("/sessions/{session_id}")
@@ -684,8 +693,8 @@ def session_detail(session_id: int, current_user: dict = Depends(get_current_use
         return data
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to retrieve session")
 
 
 @app.delete("/sessions/{session_id}")

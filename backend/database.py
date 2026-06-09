@@ -188,6 +188,9 @@ def migrate_tables():
 
         # users — admin flag (only settable via direct DB; never via API)
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
+
+        # users — token version for server-side session invalidation (password change)
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INT DEFAULT 0",
     ]
     conn = get_connection()
     try:

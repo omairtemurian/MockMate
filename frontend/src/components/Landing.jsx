@@ -322,7 +322,7 @@ export default function Landing({ onStart, user, onUpgrade }) {
     try {
       const res = await fetch(`${BACKEND_URL}/question-bank`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getStoredToken()}` },
         body: JSON.stringify({ category: selectedCategory, difficulty, language }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Failed to load questions') }

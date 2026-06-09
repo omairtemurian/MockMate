@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 from auth import get_current_user
 from database import get_connection
@@ -17,7 +17,7 @@ def require_admin(current_user: dict = Depends(get_current_user)):
 # ── List users ─────────────────────────────────────────────────────────────────
 
 @router.get("/users")
-def list_users(search: str = "", page: int = 1, limit: int = 25, _: dict = Depends(require_admin)):
+def list_users(search: str = "", page: int = Query(default=1, ge=1), limit: int = Query(default=25, ge=1, le=100), _: dict = Depends(require_admin)):
     offset = (page - 1) * limit
     conn   = get_connection()
     try:

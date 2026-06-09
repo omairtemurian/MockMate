@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import secrets
 import smtplib
@@ -52,9 +53,15 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT helpers ────────────────────────────────────────────────────────────────
 
-def create_token(user_id: str) -> str:
+_EMAIL_REGEX = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
+
+def _valid_email(email: str) -> bool:
+    return bool(_EMAIL_REGEX.match(email))
+
+
+def create_token(user_id: str, version: int = 0) -> str:
     expire = datetime.utcnow() + timedelta(days=TOKEN_EXPIRE_DAYS)
-    return jwt.encode({"sub": user_id, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode({"sub": user_id, "ver": version, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str) -> str:
     try:
@@ -169,7 +176,7 @@ def db_get_user_by_email(email: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, password_hash, name, plan, email_verified FROM users WHERE email = %s",
+                "SELECT id, email, password_hash, name, plan, email_verified, token_version FROM users WHERE email = %s",
                 (email.lower().strip(),)
             )
             row = cur.fetchone()
@@ -185,7 +192,7 @@ def db_get_user_by_id(user_id: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, name, plan, email_verified, pending_email, ai_consent, is_admin FROM users WHERE id = %s",
+                "SELECT id, email, name, plan, email_verified, pending_email, ai_consent, is_admin, token_version FROM users WHERE id = %s",
                 (user_id,)
             )
             row = cur.fetchone()
@@ -193,6 +200,18 @@ def db_get_user_by_id(user_id: str) -> dict | None:
                 return None
             cols = [d[0] for d in cur.description]
             return dict(zip(cols, row))
+    finally:
+        conn.close()
+
+def _db_increment_token_version(user_id: str):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET token_version = COALESCE(token_version, 0) + 1 WHERE id = %s",
+                (user_id,)
+            )
+        conn.commit()
     finally:
         conn.close()
 
@@ -217,10 +236,18 @@ def db_create_user(user_id: str, email: str, password_hash: str, name: str,
 # ── FastAPI dependency — resolves Bearer token → user dict ─────────────────────
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer)) -> dict:
-    user_id = decode_token(credentials.credentials)
-    user    = db_get_user_by_id(user_id)
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user = db_get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    if payload.get("ver", 0) != (user.get("token_version") or 0):
+        raise HTTPException(status_code=401, detail="Session expired — please log in again")
     return user
 
 
@@ -254,8 +281,8 @@ def register(request: Request, req: RegisterRequest):
     email = req.email.strip().lower()
     name  = req.name.strip()
 
-    if not email or not req.password or not name:
-        raise HTTPException(status_code=400, detail="email, password, and name are required")
+    if not email or not _valid_email(email) or not req.password or not name:
+        raise HTTPException(status_code=400, detail="Valid email, password, and name are required")
     if len(req.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     if db_get_user_by_email(email):
@@ -306,7 +333,7 @@ def login(request: Request, req: LoginRequest):
     finally:
         conn.close()
 
-    return {"token": create_token(str(user["id"])), "user": {
+    return {"token": create_token(str(user["id"]), version=user.get("token_version") or 0), "user": {
         "id":             str(user["id"]),
         "email":          user["email"],
         "name":           user["name"],
@@ -442,7 +469,7 @@ def send_email_change_email(to_email: str, name: str, token: str):
 @router.patch("/email")
 def change_email(req: ChangeEmailRequest, current_user: dict = Depends(get_current_user)):
     new_email = req.new_email.strip().lower()
-    if not new_email or "@" not in new_email:
+    if not new_email or not _valid_email(new_email):
         raise HTTPException(status_code=400, detail="Invalid email address")
     if new_email == current_user["email"]:
         raise HTTPException(status_code=400, detail="This is already your current email address")
@@ -529,4 +556,5 @@ def update_password(req: UpdatePasswordRequest, current_user: dict = Depends(get
     if not current_hash or not verify_password(req.current_password, current_hash):
         raise HTTPException(status_code=401, detail="Current password is incorrect")
     db_update_password(str(current_user["id"]), hash_password(req.new_password))
+    _db_increment_token_version(str(current_user["id"]))
     return {"ok": True}
