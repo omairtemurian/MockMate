@@ -7,7 +7,7 @@ from database import get_connection
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@router.post("/bootstrap")
+@router.get("/bootstrap")
 def bootstrap_admin(email: str, secret: str):
     """One-time endpoint to grant admin to an email. Requires ADMIN_BOOTSTRAP_SECRET env var."""
     expected = os.getenv("ADMIN_BOOTSTRAP_SECRET", "")
