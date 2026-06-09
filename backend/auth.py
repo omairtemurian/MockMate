@@ -1,4 +1,5 @@
 import os
+import time
 import uuid
 import secrets
 import smtplib
@@ -60,6 +61,23 @@ def decode_token(token: str) -> str:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
+# ── Email-token helpers ────────────────────────────────────────────────────────
+
+def _make_token(hours: int = 24) -> str:
+    """Return a URL-safe token with a 24-hour expiry encoded in it."""
+    raw = secrets.token_urlsafe(32)
+    exp = int(time.time()) + hours * 3600
+    return f"{raw}.{exp}"
+
+def _token_expired(token: str) -> bool:
+    """True if the token is malformed or past its expiry timestamp."""
+    try:
+        _, exp = token.rsplit(".", 1)
+        return int(exp) < int(time.time())
+    except (ValueError, TypeError):
+        return True
+
+
 # ── Email helper ───────────────────────────────────────────────────────────────
 
 def _smtp_configured() -> bool:
@@ -69,23 +87,34 @@ def _effective_verified(user: dict) -> bool:
     """When SMTP is off everyone is auto-verified; when SMTP is on use DB value."""
     return not _smtp_configured() or bool(user.get("email_verified"))
 
-def send_verification_email(to_email: str, name: str, token: str):
+def _send_email(
+    to_email: str,
+    subject: str,
+    first_name: str,
+    body_text: str,
+    cta_url: str,
+    cta_label: str,
+    footer: str,
+):
+    """Send a branded HTML + plain-text email. No-op if SMTP is not configured."""
     if not _smtp_configured():
-        return  # SMTP not set up — skip silently
+        return
 
-    api_url      = os.getenv("API_BASE_URL",  "http://localhost:8000")
-    frontend_url = os.getenv("FRONTEND_URL",  "http://localhost:5173")
-    smtp_host    = os.getenv("SMTP_HOST")
-    smtp_port    = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user    = os.getenv("SMTP_USER", "")
-    smtp_pass    = os.getenv("SMTP_PASSWORD", "")
-    smtp_from    = os.getenv("SMTP_FROM", smtp_user)
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASSWORD", "")
+    smtp_from = os.getenv("SMTP_FROM", smtp_user)
 
-    verify_url = f"{api_url}/auth/verify-email?token={token}"
-    first_name = name.split()[0] if name else "there"
+    plain = (
+        f"Hi {first_name},\n\n"
+        f"{body_text}\n\n"
+        f"{cta_label}:\n{cta_url}\n\n"
+        f"{footer}\n\n"
+        f"— MockMate"
+    )
 
-    html = f"""
-<!DOCTYPE html>
+    html = f"""<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#020617;font-family:system-ui,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -94,10 +123,10 @@ def send_verification_email(to_email: str, name: str, token: str):
              style="background:#0f172a;border-radius:20px;border:1px solid #1e293b;overflow:hidden;">
         <tr>
           <td style="padding:40px 40px 0;text-align:center;">
-            <div style="display:inline-flex;width:56px;height:56px;border-radius:14px;
+            <div style="display:inline-block;width:56px;height:56px;border-radius:14px;
                         background:linear-gradient(135deg,#10b981,#14b8a6);
-                        align-items:center;justify-content:center;margin-bottom:16px;">
-              <span style="font-size:28px;">M</span>
+                        line-height:56px;text-align:center;margin-bottom:16px;">
+              <span style="font-size:28px;color:#fff;font-weight:900;">M</span>
             </div>
             <h1 style="margin:0;color:#fff;font-size:24px;font-weight:900;">
               Mock<span style="color:#10b981;">Mate</span>
@@ -106,56 +135,78 @@ def send_verification_email(to_email: str, name: str, token: str):
         </tr>
         <tr>
           <td style="padding:32px 40px;">
-            <p style="color:#e2e8f0;font-size:16px;margin:0 0 8px;">
-              Hi {first_name} 👋
-            </p>
-            <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 28px;">
-              Thanks for signing up! Click the button below to verify your email address
-              and activate your MockMate account.
-            </p>
+            <p style="color:#e2e8f0;font-size:16px;margin:0 0 8px;">Hi {first_name},</p>
+            <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 28px;">{body_text}</p>
             <div style="text-align:center;margin-bottom:28px;">
-              <a href="{verify_url}"
+              <a href="{cta_url}"
                  style="display:inline-block;background:linear-gradient(135deg,#10b981,#14b8a6);
                         color:#fff;font-weight:700;font-size:15px;text-decoration:none;
                         padding:14px 32px;border-radius:12px;">
-                Verify Email Address
+                {cta_label}
               </a>
             </div>
             <p style="color:#475569;font-size:12px;text-align:center;margin:0;">
               Button not working? Copy this link:<br/>
-              <a href="{verify_url}" style="color:#10b981;word-break:break-all;">{verify_url}</a>
+              <a href="{cta_url}" style="color:#10b981;word-break:break-all;">{cta_url}</a>
             </p>
           </td>
         </tr>
         <tr>
           <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center;">
-            <p style="color:#334155;font-size:11px;margin:0;">
-              If you didn't create a MockMate account, you can safely ignore this email.
-            </p>
+            <p style="color:#334155;font-size:11px;margin:0;">{footer}</p>
           </td>
         </tr>
       </table>
     </td></tr>
   </table>
 </body>
-</html>
-"""
+</html>"""
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Verify your MockMate account"
-    msg["From"]    = smtp_from
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html, "html"))
+    msg["Subject"]    = subject
+    msg["From"]       = smtp_from
+    msg["To"]         = to_email
+    msg["Message-ID"] = f"<{uuid.uuid4()}@mockmate>"
+    msg.attach(MIMEText(plain, "plain"))
+    msg.attach(MIMEText(html,  "html"))
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
             server.ehlo()
             server.starttls()
             server.login(smtp_user, smtp_pass)
             server.sendmail(smtp_from, to_email, msg.as_string())
-        print(f"  ✅ Verification email sent to {to_email}")
+        print(f"  ✅ Email sent to {to_email}: {subject}")
     except Exception as e:
-        print(f"  ⚠️  Failed to send verification email: {e}")
+        print(f"  ⚠️  Failed to send email to {to_email}: {e}")
+
+
+def send_verification_email(to_email: str, name: str, token: str):
+    api_url    = os.getenv("API_BASE_URL", "http://localhost:8000")
+    first_name = name.split()[0] if name else "there"
+    _send_email(
+        to_email,
+        subject    = "Verify your MockMate account",
+        first_name = first_name,
+        body_text  = "Thanks for signing up! Click the button below to verify your email address and activate your MockMate account.",
+        cta_url    = f"{api_url}/auth/verify-email?token={token}",
+        cta_label  = "Verify Email Address",
+        footer     = "If you didn't create a MockMate account, you can safely ignore this email.",
+    )
+
+
+def send_email_change_email(to_email: str, name: str, token: str):
+    api_url    = os.getenv("API_BASE_URL", "http://localhost:8000")
+    first_name = name.split()[0] if name else "there"
+    _send_email(
+        to_email,
+        subject    = "Confirm your new MockMate email address",
+        first_name = first_name,
+        body_text  = "You requested to change your MockMate email address to this address. Click the button below to confirm the change.",
+        cta_url    = f"{api_url}/auth/verify-email-change?token={token}",
+        cta_label  = "Confirm New Email",
+        footer     = "If you didn't request this change, you can safely ignore this email.",
+    )
 
 
 # ── DB helpers ─────────────────────────────────────────────────────────────────
@@ -259,14 +310,12 @@ def register(req: RegisterRequest):
     user_id = str(uuid.uuid4())
 
     if _smtp_configured():
-        # Create unverified user, send email
-        ver_token = secrets.token_urlsafe(32)
+        ver_token = _make_token()
         db_create_user(user_id, email, hash_password(req.password), name,
                        email_verified=False, verification_token=ver_token)
         send_verification_email(email, name, ver_token)
         return {"needs_verification": True, "email": email}
     else:
-        # No SMTP — auto-verify and log in immediately
         user  = db_create_user(user_id, email, hash_password(req.password), name,
                                email_verified=True)
         token = create_token(user_id)
@@ -293,7 +342,6 @@ def login(req: LoginRequest):
     try:
         with conn.cursor() as cur:
             cur.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (str(user["id"]),))
-            # Auto-verify in DB when SMTP is off so the flag stays consistent
             if not _smtp_configured() and not user.get("email_verified"):
                 cur.execute("UPDATE users SET email_verified = TRUE WHERE id = %s", (str(user["id"]),))
         conn.commit()
@@ -312,6 +360,8 @@ def login(req: LoginRequest):
 @router.get("/verify-email")
 def verify_email(token: str):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    if _token_expired(token):
+        return RedirectResponse(f"{frontend_url}?verified=error")
     user = db_get_user_by_verification_token(token)
     if not user:
         return RedirectResponse(f"{frontend_url}?verified=error")
@@ -337,98 +387,10 @@ def resend_verification(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=400, detail="Email verification is not enabled on this server.")
     if current_user.get("email_verified"):
         raise HTTPException(status_code=400, detail="Email is already verified.")
-    ver_token = secrets.token_urlsafe(32)
+    ver_token = _make_token()
     db_set_verification_token(str(current_user["id"]), ver_token)
     send_verification_email(current_user["email"], current_user["name"] or "", ver_token)
     return {"ok": True}
-
-
-def send_email_change_email(to_email: str, name: str, token: str):
-    if not _smtp_configured():
-        return
-
-    api_url      = os.getenv("API_BASE_URL",  "http://localhost:8000")
-    smtp_host    = os.getenv("SMTP_HOST")
-    smtp_port    = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user    = os.getenv("SMTP_USER", "")
-    smtp_pass    = os.getenv("SMTP_PASSWORD", "")
-    smtp_from    = os.getenv("SMTP_FROM", smtp_user)
-
-    confirm_url = f"{api_url}/auth/verify-email-change?token={token}"
-    first_name  = name.split()[0] if name else "there"
-
-    html = f"""
-<!DOCTYPE html>
-<html>
-<body style="margin:0;padding:0;background:#020617;font-family:system-ui,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td align="center" style="padding:40px 16px;">
-      <table width="480" cellpadding="0" cellspacing="0"
-             style="background:#0f172a;border-radius:20px;border:1px solid #1e293b;overflow:hidden;">
-        <tr>
-          <td style="padding:40px 40px 0;text-align:center;">
-            <div style="display:inline-flex;width:56px;height:56px;border-radius:14px;
-                        background:linear-gradient(135deg,#10b981,#14b8a6);
-                        align-items:center;justify-content:center;margin-bottom:16px;">
-              <span style="font-size:28px;">M</span>
-            </div>
-            <h1 style="margin:0;color:#fff;font-size:24px;font-weight:900;">
-              Mock<span style="color:#10b981;">Mate</span>
-            </h1>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:32px 40px;">
-            <p style="color:#e2e8f0;font-size:16px;margin:0 0 8px;">
-              Hi {first_name} 👋
-            </p>
-            <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 28px;">
-              You requested to change your MockMate email address to this address.
-              Click the button below to confirm the change.
-            </p>
-            <div style="text-align:center;margin-bottom:28px;">
-              <a href="{confirm_url}"
-                 style="display:inline-block;background:linear-gradient(135deg,#10b981,#14b8a6);
-                        color:#fff;font-weight:700;font-size:15px;text-decoration:none;
-                        padding:14px 32px;border-radius:12px;">
-                Confirm New Email
-              </a>
-            </div>
-            <p style="color:#475569;font-size:12px;text-align:center;margin:0;">
-              Button not working? Copy this link:<br/>
-              <a href="{confirm_url}" style="color:#10b981;word-break:break-all;">{confirm_url}</a>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center;">
-            <p style="color:#334155;font-size:11px;margin:0;">
-              If you didn't request this change, you can safely ignore this email.
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>
-"""
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Confirm your new MockMate email address"
-    msg["From"]    = smtp_from
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html, "html"))
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, to_email, msg.as_string())
-        print(f"  ✅ Email change confirmation sent to {to_email}")
-    except Exception as e:
-        print(f"  ⚠️  Failed to send email change confirmation: {e}")
 
 
 @router.patch("/email")
@@ -442,7 +404,7 @@ def change_email(req: ChangeEmailRequest, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=409, detail="This email is already in use by another account")
 
     if _smtp_configured():
-        token = secrets.token_urlsafe(32)
+        token = _make_token()
         db_set_pending_email(str(current_user["id"]), new_email, token)
         send_email_change_email(new_email, current_user["name"] or "", token)
         return {"pending": True, "email": new_email}
@@ -454,6 +416,8 @@ def change_email(req: ChangeEmailRequest, current_user: dict = Depends(get_curre
 @router.get("/verify-email-change")
 def verify_email_change_route(token: str):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    if _token_expired(token):
+        return RedirectResponse(f"{frontend_url}?email_change_error=true")
     user = db_get_user_by_email_change_token(token)
     if not user or not user.get("pending_email"):
         return RedirectResponse(f"{frontend_url}?email_change_error=true")

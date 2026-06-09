@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { IconMail, IconCheckCircle, IconXCircle } from '../utils/icons'
 import { BACKEND_URL } from '../utils/config'
 
 function BgOrbs() {
@@ -130,13 +131,13 @@ export default function Auth({ defaultMode = 'login' }) {
         {/* Email verified banner */}
         {verifiedBanner === 'success' && (
           <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-400 text-sm">
-            <span className="text-base">✅</span>
+            <IconCheckCircle className="w-4 h-4 flex-shrink-0" />
             <span>Email verified! You can now sign in.</span>
           </div>
         )}
         {verifiedBanner === 'error' && (
           <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-400 text-sm">
-            <span className="text-base">❌</span>
+            <IconXCircle className="w-4 h-4 flex-shrink-0" />
             <span>Verification link is invalid or has expired.</span>
           </div>
         )}
@@ -278,7 +279,7 @@ export default function Auth({ defaultMode = 'login' }) {
             {/* Email verification notice — register only */}
             {mode === 'register' && (
               <div className="flex items-start gap-2.5 bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
-                <span className="text-base mt-0.5">📧</span>
+                <IconMail className="w-4 h-4 mt-0.5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
                 <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   We'll send a verification link to your email address to activate your account.
                 </p>

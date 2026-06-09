@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useAuth, getStoredToken } from '../context/AuthContext'
-
+import { IconUser, IconMail, IconLock } from '../utils/icons'
 import { BACKEND_URL } from '../utils/config'
 
 const isVerified = (user) => user?.email_verified === true
 
-function Section({ title, children }) {
+function Section({ title, icon: Icon, children }) {
   return (
     <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-2xl p-6 space-y-5">
-      <p className="text-slate-900 dark:text-white font-bold text-base border-b border-slate-200 dark:border-slate-800/60 pb-3">{title}</p>
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800/60 pb-3">
+        {Icon && <Icon className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />}
+        <p className="text-slate-900 dark:text-white font-bold text-base">{title}</p>
+      </div>
       {children}
     </div>
   )
@@ -264,7 +267,7 @@ export default function Settings({ onNavigate }) {
         </div>
 
         {/* Profile */}
-        <Section title="👤 Profile">
+        <Section title="Profile" icon={IconUser}>
           <form onSubmit={handleProfileSave} className="space-y-4">
             <Field label="Display Name">
               <input
@@ -334,7 +337,7 @@ export default function Settings({ onNavigate }) {
         </Section>
 
         {/* Email change */}
-        <Section title="📧 Change Email">
+        <Section title="Change Email" icon={IconMail}>
           {emailPending && (
             <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3 text-sm text-amber-300">
               <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -381,7 +384,7 @@ export default function Settings({ onNavigate }) {
         </Section>
 
         {/* Password */}
-        <Section title="🔒 Change Password">
+        <Section title="Change Password" icon={IconLock}>
           <form onSubmit={handlePasswordSave} className="space-y-4">
             <Field label="Current Password">
               <PasswordInput
