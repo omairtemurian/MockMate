@@ -203,6 +203,41 @@ export default function Landing({ onStart, user, onUpgrade }) {
   const [practiceLoading,  setPracticeLoading]  = useState(false)
   const [practiceError,    setPracticeError]    = useState('')
 
+  // Restore state from URL params on mount (shared links)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    if (p.get('mode') === 'practice') setTab('practice')
+    const urlType = p.get('type')
+    if (urlType && INTERVIEW_TYPES.find(t => t.value === urlType)) setInterviewType(urlType)
+    const urlDiff = p.get('difficulty')
+    if (['Junior', 'Mid', 'Senior'].includes(urlDiff)) setDifficulty(urlDiff)
+    const urlLang = p.get('lang')
+    if (LANGUAGES.find(l => l.code === urlLang)) setLanguage(urlLang)
+    const urlTopic = p.get('topic')
+    if (urlTopic) setSelectedCategory(decodeURIComponent(urlTopic))
+    const urlCompany = p.get('company')
+    if (urlCompany) setCompanyName(decodeURIComponent(urlCompany))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync shareable state to URL
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    p.set('page', 'landing')
+    if (tab === 'practice') {
+      p.set('mode', 'practice')
+      if (selectedCategory) p.set('topic', selectedCategory); else p.delete('topic')
+      p.delete('type'); p.delete('company')
+    } else {
+      p.delete('mode')
+      p.set('type', interviewType)
+      if (companyName.trim()) p.set('company', companyName.trim()); else p.delete('company')
+      p.delete('topic')
+    }
+    p.set('difficulty', difficulty)
+    if (language !== 'en-US') p.set('lang', language); else p.delete('lang')
+    window.history.replaceState({}, '', `?${p.toString()}`)
+  }, [tab, interviewType, difficulty, language, selectedCategory, companyName]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     fetchCVProfile().then(data => {
       if (data?.raw_text) {

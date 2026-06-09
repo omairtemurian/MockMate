@@ -87,6 +87,32 @@ function AppInner() {
     fetch(`${BACKEND_URL}/health`).catch(() => {})
   }, [])
 
+  // Read initial page from URL on mount (shared links)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    // Don't interfere with special redirect params
+    if (p.has('checkout') || p.has('email_changed') || p.has('email_change_error') || p.has('dev')) return
+    const page = p.get('page')
+    if (page && ['landing', 'dashboard', 'sessions', 'settings', 'admin'].includes(page)) {
+      setView(page)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Write current page to URL whenever view changes
+  useEffect(() => {
+    if (!user) return
+    const p = new URLSearchParams(window.location.search)
+    if (p.has('checkout') || p.has('email_changed') || p.has('email_change_error')) return
+    p.set('page', view)
+    // Strip landing-specific params when leaving the landing page
+    if (view !== 'landing') {
+      ['mode', 'type', 'difficulty', 'lang', 'topic', 'company'].forEach(k => p.delete(k))
+    }
+    // Strip settings tab param when leaving settings
+    if (view !== 'settings') p.delete('tab')
+    window.history.replaceState({}, '', `?${p.toString()}`)
+  }, [view]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Handle redirect params from auth backend and Polar checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -195,7 +221,13 @@ function AppInner() {
       {showAIConsent   && <AIConsentModal onClose={() => setShowAIConsent(false)} />}
       {showOnboarding  && (
         <OnboardingModal
-          onUploadCV={() => { setShowOnboarding(false); setSettingsTab('cv'); setView('settings') }}
+          onUploadCV={() => {
+            setShowOnboarding(false)
+            const p = new URLSearchParams(window.location.search)
+            p.set('page', 'settings'); p.set('tab', 'cv')
+            window.history.replaceState({}, '', `?${p.toString()}`)
+            setView('settings')
+          }}
           onSkip={() => setShowOnboarding(false)}
         />
       )}

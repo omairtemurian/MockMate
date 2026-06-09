@@ -201,7 +201,20 @@ const TABS = [
 
 export default function Settings({ initialTab = 'profile' }) {
   const { user, updateUser, logout } = useAuth()
-  const [tab, setTab] = useState(initialTab)
+
+  // Resolve initial tab: URL param takes priority over prop
+  const urlTab = new URLSearchParams(window.location.search).get('tab')
+  const validTabs = TABS.map(t => t.id)
+  const [tab, setTab] = useState(
+    validTabs.includes(urlTab) ? urlTab : (validTabs.includes(initialTab) ? initialTab : 'profile')
+  )
+
+  // Keep URL in sync when tab changes
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    p.set('tab', tab)
+    window.history.replaceState({}, '', `?${p.toString()}`)
+  }, [tab])
 
   const authHeaders = {
     'Content-Type': 'application/json',
