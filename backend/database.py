@@ -185,6 +185,9 @@ def migrate_tables():
         # users — AI data processing consent (Swiss DSG / GDPR)
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_consent    BOOLEAN DEFAULT NULL",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_consent_at TIMESTAMP",
+
+        # users — admin flag (only settable via direct DB; never via API)
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE",
     ]
     conn = get_connection()
     try:

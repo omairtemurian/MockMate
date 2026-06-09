@@ -2,6 +2,47 @@ import { getUserId } from './userId'
 import { BACKEND_URL } from './config'
 import { getStoredToken } from '../context/AuthContext'
 
+// ── Admin API ──────────────────────────────────────────────────────────────────
+
+function adminHeaders() {
+  const token = getStoredToken()
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+}
+
+export async function adminListUsers(search = '', page = 1) {
+  const params = new URLSearchParams({ page, limit: 25 })
+  if (search) params.set('search', search)
+  const res = await fetch(`${BACKEND_URL}/admin/users?${params}`, { headers: adminHeaders() })
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed')
+  return res.json()
+}
+
+export async function adminSetPlan(userId, plan) {
+  const res = await fetch(`${BACKEND_URL}/admin/users/${userId}/plan`, {
+    method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ plan }),
+  })
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed')
+  return res.json()
+}
+
+export async function adminSetAdmin(userId, is_admin) {
+  const res = await fetch(`${BACKEND_URL}/admin/users/${userId}/admin`, {
+    method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ is_admin }),
+  })
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed')
+  return res.json()
+}
+
+export async function adminDeleteUser(userId) {
+  const res = await fetch(`${BACKEND_URL}/admin/users/${userId}`, {
+    method: 'DELETE', headers: adminHeaders(),
+  })
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed')
+  return res.json()
+}
+
+// ── Auth / consent ─────────────────────────────────────────────────────────────
+
 export async function setAIConsent(consent) {
   const token = getStoredToken()
   if (!token) return

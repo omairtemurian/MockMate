@@ -181,7 +181,7 @@ def db_get_user_by_id(user_id: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, name, plan, email_verified, pending_email, ai_consent FROM users WHERE id = %s",
+                "SELECT id, email, name, plan, email_verified, pending_email, ai_consent, is_admin FROM users WHERE id = %s",
                 (user_id,)
             )
             row = cur.fetchone()
@@ -329,6 +329,7 @@ def me(current_user: dict = Depends(get_current_user)):
         "email_verified": _effective_verified(current_user),
         "pending_email":  current_user.get("pending_email"),
         "ai_consent":     current_user.get("ai_consent"),
+        "is_admin":       bool(current_user.get("is_admin")),
     }
 
 

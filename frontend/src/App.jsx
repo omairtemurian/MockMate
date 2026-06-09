@@ -16,6 +16,7 @@ import Settings     from './components/Settings'
 import ErrorBoundary    from './components/ErrorBoundary'
 import CookieBanner     from './components/CookieBanner'
 import AIConsentModal   from './components/AIConsentModal'
+import AdminPanel       from './components/AdminPanel'
 
 function TopControls({ belowHeader, user, onUpgradeClick }) {
   const { theme, toggleTheme } = useTheme()
@@ -166,7 +167,7 @@ function AppInner() {
   }
 
   // Interview and debrief are full-screen — no sidebar
-  const sidebarViews = ['dashboard', 'sessions', 'landing', 'cv', 'settings']
+  const sidebarViews = ['dashboard', 'sessions', 'landing', 'cv', 'settings', 'admin']
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -201,9 +202,10 @@ function AppInner() {
       <main className={`flex-1 min-h-screen transition-all duration-300 ${
         sidebarViews.includes(view) ? (sidebarCollapsed ? 'ml-16' : 'ml-60') : ''
       }`}>
-        {view === 'dashboard' && <Dashboard onNavigate={setView} />}
-        {view === 'sessions'  && <Sessions  onNavigate={setView} />}
-        {view === 'settings'  && <Settings  onNavigate={setView} />}
+        {view === 'dashboard' && <Dashboard  onNavigate={setView} />}
+        {view === 'sessions'  && <Sessions   onNavigate={setView} />}
+        {view === 'settings'  && <Settings   onNavigate={setView} />}
+        {view === 'admin'     && user?.is_admin && <AdminPanel />}
         {view === 'cv'        && <CVProfile user={user} onUpgrade={() => setShowProModal(true)} />}
         {view === 'landing'   && <Landing   onStart={handleStart} user={user} onUpgrade={() => setShowProModal(true)} />}
         {view === 'interview' && sessionData && (
