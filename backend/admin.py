@@ -1,9 +1,28 @@
+import os
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from auth import get_current_user
 from database import get_connection
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.post("/bootstrap")
+def bootstrap_admin(email: str, secret: str):
+    """One-time endpoint to grant admin to an email. Requires ADMIN_BOOTSTRAP_SECRET env var."""
+    expected = os.getenv("ADMIN_BOOTSTRAP_SECRET", "")
+    if not expected or secret != expected:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET is_admin = true WHERE email = %s", (email.lower().strip(),))
+            if cur.rowcount == 0:
+                raise HTTPException(status_code=404, detail="No user with that email")
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "message": f"{email} is now admin"}
 
 
 def require_admin(current_user: dict = Depends(get_current_user)):
