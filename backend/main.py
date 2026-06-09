@@ -1,4 +1,5 @@
 import os
+import re
 import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,7 @@ from prompts import (
     INTERVIEW_TYPE_PROMPTS,
     QUESTION_BANK_PROMPT,
     CV_PARSE_PROMPT,
+    CV_ANALYSIS_PROMPT,
     language_instruction,
 )
 from helpers import (
@@ -80,9 +82,42 @@ DIFFICULTY_INTERVIEW_CONTEXT = {
 
 DIFFICULTY_QUESTION_CONTEXT = {
     "Junior": "Keep questions accessible — focus on fundamentals, learning willingness, and simple real-world examples. Avoid jargon-heavy or highly senior topics.",
-    "Mid":    "Questions should require concrete examples from past experience and moderate technical knowledge.",
+    "Mid":    "Questions should require concrete examples from past experience and moderate technical depth.",
     "Senior": "Questions should probe for senior-level depth: system design, leadership, measurable outcomes, trade-off reasoning, and strategic decisions.",
 }
+
+
+# --- PII helpers ---
+
+_EMAIL_RE = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
+_PHONE_RE = re.compile(r'(?<!\d)(\+?[\d][\d\s\-\(\)\.]{6,14}\d)(?!\d)')
+
+def strip_contact_pii(text: str) -> str:
+    """Remove email addresses and phone numbers from CV text before sending to LLM."""
+    text = _EMAIL_RE.sub('[email]', text)
+    text = _PHONE_RE.sub('[phone]', text)
+    return text
+
+def check_ai_consent(user_id: str):
+    """Raise 451 if the user has not accepted AI data processing consent."""
+    if not user_id:
+        return
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT ai_consent FROM users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+    finally:
+        conn.close()
+    # Only block if the user record exists AND consent is explicitly False
+    # NULL = not yet decided (anonymous / newly registered) — blocked too
+    if row is None:
+        return  # anonymous user not in users table — skip check
+    if row[0] is not True:
+        raise HTTPException(
+            status_code=451,
+            detail="AI data processing consent required. Please accept in Settings → AI & Data Processing."
+        )
 
 
 # --- Request models ---
@@ -94,6 +129,7 @@ class ParseJDRequest(BaseModel):
     company_name: Optional[str] = None
     interview_type: Optional[str] = "full"
     language: Optional[str] = "en-US"
+    user_id: Optional[str] = None
 
 
 class QuestionBankRequest(BaseModel):
@@ -128,6 +164,7 @@ class DebriefRequest(BaseModel):
     qa_pairs: List[QAPair]
     role: Optional[str] = "the position"
     language: Optional[str] = "en-US"
+    user_id: Optional[str] = None
 
 
 # --- Endpoints ---
@@ -188,8 +225,11 @@ async def parse_jd(req: ParseJDRequest):
     if not req.jd_text.strip():
         raise HTTPException(status_code=400, detail="jd_text is required")
 
+    check_ai_consent(req.user_id)
+
     if req.cv_text and req.cv_text.strip():
-        cv_section = f"Candidate CV / Resume:\n{req.cv_text.strip()}\n\nUse the candidate's actual experience to personalise the 5 interview questions."
+        safe_cv = strip_contact_pii(req.cv_text.strip())
+        cv_section = f"Candidate CV / Resume:\n{safe_cv}\n\nUse the candidate's actual experience to personalise the interview questions."
     else:
         cv_section = "No CV provided. Generate generic questions based on the job description only."
 
@@ -219,7 +259,7 @@ async def parse_jd(req: ParseJDRequest):
     )
 
     try:
-        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=800)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=1200)
         data = extract_json(raw)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -392,9 +432,11 @@ async def upload_cv_profile(user_id: str = Form(...), file: UploadFile = File(..
     if not raw_text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from the file.")
 
-    # Limit text length before sending to AI (avoid token overflow)
+    check_ai_consent(user_id)
+
+    # Limit text length and strip contact PII before sending to LLM
     words = raw_text.split()
-    cv_text_trimmed = " ".join(words[:1200])
+    cv_text_trimmed = strip_contact_pii(" ".join(words[:1200]))
 
     try:
         prompt = CV_PARSE_PROMPT.format(cv_text=cv_text_trimmed)
@@ -420,10 +462,41 @@ def get_cv_profile_endpoint(user_id: str):
     return profile
 
 
+@app.post("/analyse-cv")
+async def analyse_cv(user_id: str):
+    check_ai_consent(user_id)
+
+    # Check pro plan
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT plan FROM users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+    if not row or row[0] != "pro":
+        raise HTTPException(status_code=403, detail="Resume analysis requires a Pro plan")
+
+    profile = get_cv_profile(user_id)
+    if not profile or not profile.get("raw_text"):
+        raise HTTPException(status_code=404, detail="No CV found — upload one first")
+
+    words = profile["raw_text"].split()
+    cv_text = strip_contact_pii(" ".join(words[:1200]))
+
+    try:
+        prompt = CV_ANALYSIS_PROMPT.format(cv_text=cv_text)
+        raw = chat(client, MODEL, [{"role": "user", "content": prompt}], max_tokens=1000)
+        data = extract_json(raw)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+    return data
+
+
 @app.post("/debrief")
 async def debrief(req: DebriefRequest):
     if len(req.qa_pairs) == 0:
         raise HTTPException(status_code=400, detail="qa_pairs is required")
+
+    check_ai_consent(req.user_id)
 
     qa_text = "\n\n".join(
         [f"Q{i+1}: {pair.question}\nA{i+1}: {pair.answer}" for i, pair in enumerate(req.qa_pairs)]

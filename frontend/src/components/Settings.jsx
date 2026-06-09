@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth, getStoredToken } from '../context/AuthContext'
-
+import { deleteCookie } from '../utils/cookies'
+import { setAIConsent } from '../utils/api'
 import { BACKEND_URL } from '../utils/config'
 
 const isVerified = (user) => user?.email_verified === true
@@ -92,7 +93,7 @@ function Toast({ type, message, onDismiss }) {
 }
 
 export default function Settings({ onNavigate }) {
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, logout } = useAuth()
 
   // Profile
   const [name,           setName]           = useState(user?.name || '')
@@ -107,6 +108,15 @@ export default function Settings({ onNavigate }) {
   const [emailLoading,  setEmailLoading]  = useState(false)
   const [emailPending,  setEmailPending]  = useState(user?.pending_email || null)
   const [cancelLoading, setCancelLoading] = useState(false)
+
+  // AI consent
+  const [aiConsentLoading, setAiConsentLoading] = useState(false)
+  const [aiConsentMsg,     setAiConsentMsg]     = useState(null)
+
+  // Delete account
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleteMsg,     setDeleteMsg]     = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   // Password
   const [currentPw,  setCurrentPw]  = useState('')
@@ -236,6 +246,44 @@ export default function Settings({ onNavigate }) {
       setPwMsg({ type: 'error', text: 'Could not connect to server.' })
     } finally {
       setPwLoading(false)
+    }
+  }
+
+  const handleAIConsent = async (consent) => {
+    setAiConsentLoading(true)
+    setAiConsentMsg(null)
+    try {
+      await setAIConsent(consent)
+      updateUser({ ai_consent: consent })
+      setAiConsentMsg({ type: 'success', text: consent ? 'Consent granted. AI features are now enabled.' : 'Consent withdrawn. AI features are now disabled.' })
+    } catch {
+      setAiConsentMsg({ type: 'error', text: 'Could not connect to server.' })
+    } finally {
+      setAiConsentLoading(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true)
+    setDeleteMsg(null)
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/account`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      })
+      if (res.ok) {
+        deleteCookie('mockmate_token')
+        deleteCookie('mockmate_uid')
+        deleteCookie('mockmate_anon')
+        logout()
+      } else {
+        const d = await res.json()
+        setDeleteMsg({ type: 'error', text: d.detail || 'Failed to delete account.' })
+      }
+    } catch {
+      setDeleteMsg({ type: 'error', text: 'Could not connect to server.' })
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -419,6 +467,104 @@ export default function Settings({ onNavigate }) {
             </button>
           </form>
         </Section>
+
+        {/* AI & Data Processing */}
+        <Section title="🤖 AI & Data Processing">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                user?.ai_consent === true  ? 'bg-emerald-500' :
+                user?.ai_consent === false ? 'bg-red-500' : 'bg-amber-500'
+              }`} />
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {user?.ai_consent === true  ? 'Consent granted' :
+                   user?.ai_consent === false ? 'Consent declined' :
+                   'No decision recorded'}
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  {user?.ai_consent === true
+                    ? 'Your CV text, job descriptions, and interview answers may be sent to our AI provider for processing. Email and phone numbers are automatically removed before transmission.'
+                    : 'AI-powered features (interviews, scoring, CV analysis) require your consent to send data to our AI provider.'}
+                </p>
+              </div>
+            </div>
+            {aiConsentMsg && (
+              <Toast type={aiConsentMsg.type} message={aiConsentMsg.text} onDismiss={() => setAiConsentMsg(null)} />
+            )}
+            <div className="flex gap-2">
+              {user?.ai_consent !== true && (
+                <button
+                  onClick={() => handleAIConsent(true)}
+                  disabled={aiConsentLoading}
+                  className="text-sm font-bold px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white transition-all disabled:opacity-40"
+                >
+                  {aiConsentLoading ? 'Saving…' : 'Grant consent'}
+                </button>
+              )}
+              {user?.ai_consent === true && (
+                <button
+                  onClick={() => handleAIConsent(false)}
+                  disabled={aiConsentLoading}
+                  className="text-sm font-semibold px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-40"
+                >
+                  {aiConsentLoading ? 'Saving…' : 'Withdraw consent'}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Recorded under Swiss DSG / GDPR Art. 6. Withdrawal takes effect immediately — no further data will be sent to the AI provider.
+            </p>
+          </div>
+        </Section>
+
+        {/* Danger Zone */}
+        <div className="border border-red-500/20 rounded-2xl p-6 space-y-4">
+          <p className="text-red-400 font-bold text-base border-b border-red-500/15 pb-3">
+            ⚠️ Danger Zone
+          </p>
+
+          {!deleteConfirm ? (
+            <div className="space-y-3">
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Permanently delete your account and all associated data — interview sessions, CV profile, and all personal information we hold. This complies with your right to erasure under Swiss DSG / GDPR and <strong className="text-slate-500 dark:text-slate-300">cannot be undone</strong>.
+              </p>
+              <button
+                onClick={() => setDeleteConfirm(true)}
+                className="text-sm font-semibold text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/5 px-4 py-2 rounded-xl transition-all"
+              >
+                Delete my account
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-red-500/8 border border-red-500/20 rounded-xl p-4 space-y-1.5">
+                <p className="text-sm font-bold text-red-400">This cannot be undone</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  All your interview sessions, scores, your CV profile, and your account will be permanently erased. We will have no record of your data after this action.
+                </p>
+              </div>
+              {deleteMsg && (
+                <Toast type={deleteMsg.type} message={deleteMsg.text} onDismiss={() => setDeleteMsg(null)} />
+              )}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="text-sm font-bold px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white shadow-md shadow-red-500/20 transition-all disabled:opacity-50"
+                >
+                  {deleteLoading ? 'Deleting…' : 'Yes, delete everything'}
+                </button>
+                <button
+                  onClick={() => { setDeleteConfirm(false); setDeleteMsg(null) }}
+                  className="text-sm px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

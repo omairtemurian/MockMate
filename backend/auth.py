@@ -181,7 +181,7 @@ def db_get_user_by_id(user_id: str) -> dict | None:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, email, name, plan, email_verified, pending_email FROM users WHERE id = %s",
+                "SELECT id, email, name, plan, email_verified, pending_email, ai_consent FROM users WHERE id = %s",
                 (user_id,)
             )
             row = cur.fetchone()
@@ -328,6 +328,7 @@ def me(current_user: dict = Depends(get_current_user)):
         "plan":           current_user["plan"],
         "email_verified": _effective_verified(current_user),
         "pending_email":  current_user.get("pending_email"),
+        "ai_consent":     current_user.get("ai_consent"),
     }
 
 
@@ -466,6 +467,41 @@ def verify_email_change_route(token: str):
 @router.post("/cancel-email-change")
 def cancel_email_change(current_user: dict = Depends(get_current_user)):
     db_cancel_email_change(str(current_user["id"]))
+    return {"ok": True}
+
+
+class AIConsentRequest(BaseModel):
+    consent: bool
+
+@router.post("/ai-consent")
+def set_ai_consent(req: AIConsentRequest, current_user: dict = Depends(get_current_user)):
+    """Record the user's consent decision for AI data processing (Swiss DSG / GDPR Art. 6)."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET ai_consent = %s, ai_consent_at = NOW() WHERE id = %s",
+                (req.consent, str(current_user["id"]))
+            )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "ai_consent": req.consent}
+
+
+@router.delete("/account")
+def delete_account(current_user: dict = Depends(get_current_user)):
+    """Permanently erase all data for the authenticated user (Swiss DSG / GDPR right to erasure)."""
+    user_id = str(current_user["id"])
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM sessions   WHERE user_id = %s", (user_id,))  # cascades to answers
+            cur.execute("DELETE FROM cv_profiles WHERE user_id = %s", (user_id,))
+            cur.execute("DELETE FROM users       WHERE id      = %s", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
     return {"ok": True}
 
 

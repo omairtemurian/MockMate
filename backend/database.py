@@ -181,6 +181,10 @@ def migrate_tables():
         # users — email change flow
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pending_email      TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_change_token TEXT",
+
+        # users — AI data processing consent (Swiss DSG / GDPR)
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_consent    BOOLEAN DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_consent_at TIMESTAMP",
     ]
     conn = get_connection()
     try:

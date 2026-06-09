@@ -9,8 +9,8 @@ import {
   Cell,
 } from "recharts";
 import { wpmColor, durationLabel } from "../utils/speechAnalytics";
-import { saveSession } from "../utils/history";
 import { saveSessionToDB } from "../utils/api";
+import { getUserId } from "../utils/userId";
 import RetryModal from "./RetryModal";
 import { scoreAllAnswers } from "../utils/scoring";
 import { BACKEND_URL } from "../utils/config";
@@ -708,6 +708,7 @@ export default function Debrief({
             qa_pairs: cleanPairs,
             role: safeRole,
             language: normalizedLang,
+            user_id: getUserId(),
           }),
         });
 
@@ -723,14 +724,6 @@ export default function Debrief({
         }
 
         setDebrief(data);
-
-        saveSession({
-          role: safeRole,
-          difficulty: difficulty || "Mid",
-          overall_score: data.overall_score,
-          answerCount: data.answers?.length || qaPairs.length,
-          duration: duration || 0,
-        });
 
         if (!savedToDB.current) {
           savedToDB.current = true;

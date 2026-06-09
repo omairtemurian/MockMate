@@ -13,7 +13,9 @@ import CVProfile    from './components/CVProfile'
 import Sessions     from './components/Sessions'
 import ProModal     from './components/ProModal'
 import Settings     from './components/Settings'
-import ErrorBoundary from './components/ErrorBoundary'
+import ErrorBoundary    from './components/ErrorBoundary'
+import CookieBanner     from './components/CookieBanner'
+import AIConsentModal   from './components/AIConsentModal'
 
 function TopControls({ belowHeader, user, onUpgradeClick }) {
   const { theme, toggleTheme } = useTheme()
@@ -64,6 +66,12 @@ function AppInner() {
   const [faceMetrics,      setFaceMetrics]      = useState(null)
   const [recording,        setRecording]        = useState(null)
   const [banner,           setBanner]           = useState(null)
+  const [showAIConsent,    setShowAIConsent]    = useState(false)
+
+  // Show AI consent modal once for users who haven't decided yet
+  useEffect(() => {
+    if (user && user.ai_consent == null) setShowAIConsent(true)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Wake up the Render backend immediately so it's ready when the user acts
   useEffect(() => {
@@ -174,7 +182,8 @@ function AppInner() {
         />
       )}
 
-      {showProModal && <ProModal onClose={() => setShowProModal(false)} />}
+      {showProModal   && <ProModal onClose={() => setShowProModal(false)} />}
+      {showAIConsent  && <AIConsentModal onClose={() => setShowAIConsent(false)} />}
 
       {/* Global notification banner (e.g. email changed redirect) */}
       {banner && (
@@ -195,8 +204,8 @@ function AppInner() {
         {view === 'dashboard' && <Dashboard onNavigate={setView} />}
         {view === 'sessions'  && <Sessions  onNavigate={setView} />}
         {view === 'settings'  && <Settings  onNavigate={setView} />}
-        {view === 'cv'        && <CVProfile />}
-        {view === 'landing'   && <Landing   onStart={handleStart} />}
+        {view === 'cv'        && <CVProfile user={user} onUpgrade={() => setShowProModal(true)} />}
+        {view === 'landing'   && <Landing   onStart={handleStart} user={user} onUpgrade={() => setShowProModal(true)} />}
         {view === 'interview' && sessionData && (
           <Interview sessionData={sessionData} onComplete={handleComplete} />
         )}
@@ -225,6 +234,7 @@ export default function App() {
         <AuthProvider>
           <AppInner />
         </AuthProvider>
+        <CookieBanner />
       </ErrorBoundary>
     </ThemeProvider>
   )

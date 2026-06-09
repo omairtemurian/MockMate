@@ -1,5 +1,16 @@
 import { getUserId } from './userId'
 import { BACKEND_URL } from './config'
+import { getStoredToken } from '../context/AuthContext'
+
+export async function setAIConsent(consent) {
+  const token = getStoredToken()
+  if (!token) return
+  await fetch(`${BACKEND_URL}/auth/ai-consent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ consent }),
+  })
+}
 
 /**
  * Save a completed session + answers to PostgreSQL.
@@ -124,6 +135,21 @@ export async function fetchSessionDetail(sessionId) {
   } catch {
     return null
   }
+}
+
+/**
+ * Run AI analysis on the user's stored CV (Pro only).
+ * Throws Error('pro_required') if user is not on Pro plan.
+ * @returns {Promise<object>}
+ */
+export async function analyseCV() {
+  const res = await fetch(`${BACKEND_URL}/analyse-cv?user_id=${getUserId()}`, { method: 'POST' })
+  if (res.status === 403) throw new Error('pro_required')
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Analysis failed')
+  }
+  return await res.json()
 }
 
 /**
