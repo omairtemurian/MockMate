@@ -130,7 +130,7 @@ function ProgressChart() {
           <Tooltip
             contentStyle={theme === 'dark'
               ? { backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(51,65,85,0.5)', borderRadius: 10 }
-              : { backgroundColor: 'rgba(253,248,240,0.97)', border: '1px solid rgba(210,195,170,0.8)', borderRadius: 10 }}
+              : { backgroundColor: 'rgba(255,255,255,0.97)', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 10 }}
             labelStyle={{ color: theme === 'dark' ? '#e2e8f0' : '#1e293b', fontWeight: 600, fontSize: 11 }}
             itemStyle={{ color: theme === 'dark' ? '#94a3b8' : '#475569', fontSize: 11 }}
             formatter={(v, _, props) => [`${v}/10 — ${props.payload?.role || ''}`, 'Score']}
@@ -191,7 +191,7 @@ function pillCls(active) {
   return `flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
     active
       ? 'bg-emerald-500/15 border border-emerald-500/35 text-emerald-400'
-      : 'bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-700 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+      : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-700 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
   }`
 }
 
@@ -372,7 +372,7 @@ export default function Landing({ onStart }) {
         </div>
 
         {/* Mode tabs — segmented control */}
-        <div className="flex gap-1 mb-5 p-1 bg-slate-100/80 dark:bg-slate-800/60 rounded-xl animate-fade-up" style={{ animationDelay: '0.04s' }}>
+        <div className="flex gap-1 mb-5 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-fade-up" style={{ animationDelay: '0.04s' }}>
           {[
             { key: 'job',      label: 'Job Interview' },
             { key: 'practice', label: 'Practice Mode'  },
@@ -405,7 +405,7 @@ export default function Landing({ onStart }) {
                 </label>
                 <input
                   type="text"
-                  className="w-full bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-3 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 text-sm transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-3 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 text-sm transition-all"
                   placeholder="e.g. Google, Stripe, Amazon…"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
@@ -465,7 +465,7 @@ export default function Landing({ onStart }) {
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                           jdInputMode === 'paste'
                             ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
-                            : 'bg-slate-100/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                            : 'bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                         }`}
                       >
                         <IconPaste /> Paste text
@@ -475,7 +475,7 @@ export default function Landing({ onStart }) {
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                           jdInputMode === 'upload'
                             ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
-                            : 'bg-slate-100/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                            : 'bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                         }`}
                       >
                         <IconUpload /> Upload file
@@ -485,7 +485,7 @@ export default function Landing({ onStart }) {
                     {/* Paste textarea */}
                     {jdInputMode === 'paste' && (
                       <textarea
-                        className="mt-2 w-full h-36 bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl p-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-none text-sm leading-relaxed transition-all"
+                        className="mt-2 w-full h-36 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl p-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-none text-sm leading-relaxed transition-all"
                         placeholder="Paste the job description here…"
                         value={jd}
                         onChange={(e) => setJd(e.target.value)}
@@ -498,7 +498,7 @@ export default function Landing({ onStart }) {
                     {jdInputMode === 'upload' && (
                       <div className="mt-2">
                         {jdLoading ? (
-                          <div className="flex items-center gap-3 px-3 py-3 border border-slate-200 dark:border-slate-700/50 bg-slate-100/60 dark:bg-slate-800/30 rounded-xl">
+                          <div className="flex items-center gap-3 px-3 py-3 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
                             <Spinner />
                             <span className="text-sm text-slate-500 truncate flex-1">{jdFile?.name}</span>
                             <span className="text-xs text-slate-400">Extracting…</span>
@@ -506,7 +506,7 @@ export default function Landing({ onStart }) {
                         ) : (
                           <div
                             onClick={() => jdFileInputRef.current?.click()}
-                            className="border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer transition-all border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-100/50 dark:hover:bg-slate-800/30"
+                            className="border-2 border-dashed rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer transition-all border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-50 dark:hover:bg-slate-800/30"
                           >
                             <IconUpload className="w-5 h-5 text-slate-400" />
                             <p className="text-sm text-slate-500 dark:text-slate-400">Click to upload</p>
@@ -534,7 +534,7 @@ export default function Landing({ onStart }) {
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer transition-all ${
-                      isDragging ? 'border-emerald-400 bg-emerald-500/8' : 'border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/25 hover:bg-slate-100/50 dark:hover:bg-slate-800/30'
+                      isDragging ? 'border-emerald-400 bg-emerald-500/8' : 'border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/25 hover:bg-slate-50 dark:hover:bg-slate-800/30'
                     }`}
                   >
                     <IconUpload className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -544,7 +544,7 @@ export default function Landing({ onStart }) {
                   </div>
                 ) : (
                   <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all ${
-                    cvLoading ? 'border-slate-200 dark:border-slate-700/50 bg-slate-100/50 dark:bg-slate-800/30' :
+                    cvLoading ? 'border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30' :
                     cvText ? 'border-emerald-500/30 bg-emerald-500/8' : 'border-red-500/30 bg-red-500/8'
                   }`}>
                     {cvLoading ? <Spinner /> : cvText
@@ -575,7 +575,7 @@ export default function Landing({ onStart }) {
                       className={`py-2 px-3 rounded-xl text-sm font-medium text-center transition-all ${
                         interviewType === t.value
                           ? 'bg-emerald-500/15 border border-emerald-500/35 text-emerald-400'
-                          : 'bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                          : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       {t.label}
@@ -618,7 +618,7 @@ export default function Landing({ onStart }) {
                       className={`py-2 px-3 rounded-xl text-xs font-medium text-center transition-all ${
                         selectedCategory === c.value
                           ? 'bg-emerald-500/15 border border-emerald-500/35 text-emerald-400'
-                          : 'bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                          : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/40 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       {c.label}

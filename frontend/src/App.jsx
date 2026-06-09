@@ -15,11 +15,12 @@ import ProModal     from './components/ProModal'
 import Settings     from './components/Settings'
 import ErrorBoundary from './components/ErrorBoundary'
 
-function TopControls({ belowHeader, user, onUpgradeClick }) {
+function TopControls({ belowHeader, user, onUpgradeClick, actionButton }) {
   const { theme, toggleTheme } = useTheme()
   const top = belowHeader ? 'top-20' : 'top-4'
   return (
     <div className={`fixed right-4 z-[9999] flex items-center gap-2 ${top}`}>
+      {actionButton}
       {user && user.plan !== 'pro' && (
         <button
           onClick={onUpgradeClick}
@@ -162,7 +163,25 @@ function AppInner() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <TopControls belowHeader={view === 'interview' || view === 'debrief'} user={user} onUpgradeClick={() => setShowProModal(true)} />
+      <TopControls
+        belowHeader={view === 'interview' || view === 'debrief'}
+        user={user}
+        onUpgradeClick={() => setShowProModal(true)}
+        actionButton={
+          (view === 'dashboard' || view === 'sessions') ? (
+            <button
+              onClick={() => setView('landing')}
+              className="flex items-center gap-1.5 px-3 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs font-bold shadow-lg shadow-emerald-500/25 transition-all whitespace-nowrap"
+            >
+              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+              </svg>
+              {view === 'sessions' ? 'New Interview' : 'Start Interview'}
+            </button>
+          ) : null
+        }
+      />
 
       {sidebarViews.includes(view) && (
         <Sidebar

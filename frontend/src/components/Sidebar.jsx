@@ -55,9 +55,9 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
       className="fixed left-0 top-0 bottom-0 flex flex-col z-40 transition-all duration-300"
       style={{
         width: collapsed ? '4rem' : '15rem',
-        background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(253,248,240,0.98)',
-        borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(210,195,170,0.7)',
-        boxShadow: theme === 'dark' ? 'none' : '2px 0 12px rgba(180,140,80,0.08)',
+        background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(255,255,255,0.98)',
+        borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
+        boxShadow: theme === 'dark' ? 'none' : '2px 0 12px rgba(100,116,139,0.08)',
         backdropFilter: 'blur(20px)',
       }}
     >
@@ -67,10 +67,10 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         className="absolute top-4 -right-8 w-8 h-8 flex items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors z-50"
         style={{
-          background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(253,248,240,0.98)',
-          borderTop: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(210,195,170,0.7)',
-          borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(210,195,170,0.7)',
-          borderBottom: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(210,195,170,0.7)',
+          background: theme === 'dark' ? 'rgba(2,6,23,0.95)' : 'rgba(255,255,255,0.98)',
+          borderTop: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
+          borderRight: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
+          borderBottom: theme === 'dark' ? '1px solid rgba(51,65,85,0.4)' : '1px solid rgba(226,232,240,0.8)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -116,7 +116,7 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
           {menuOpen && (
             <div
               className="absolute bottom-full mb-2 left-0 right-0 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700/50 z-50"
-              style={{ background: theme === 'dark' ? 'rgba(15,23,42,0.98)' : 'rgba(253,248,240,0.98)', backdropFilter: 'blur(20px)', boxShadow: theme === 'dark' ? '' : '0 4px 20px rgba(180,140,80,0.12), 0 1px 4px rgba(180,140,80,0.08)' }}
+              style={{ background: theme === 'dark' ? 'rgba(15,23,42,0.98)' : 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)', boxShadow: theme === 'dark' ? '' : '0 4px 20px rgba(100,116,139,0.12), 0 1px 4px rgba(100,116,139,0.08)' }}
             >
               <button
                 onClick={() => { setMenuOpen(false); onTab('settings') }}
@@ -147,7 +147,7 @@ export default function Sidebar({ activeTab, onTab, collapsed, onToggle, onUpgra
             onClick={() => setMenuOpen(v => !v)}
             title={collapsed ? 'Account menu' : undefined}
             className={`w-full flex items-center gap-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 border transition-colors ${
-              menuOpen ? 'border-slate-300 dark:border-slate-600/60 bg-slate-100/80 dark:bg-slate-800/40' : 'border-slate-200 dark:border-slate-700/40'
+              menuOpen ? 'border-slate-300 dark:border-slate-600/60 bg-slate-100 dark:bg-slate-800/40' : 'border-slate-200 dark:border-slate-700/40'
             } ${collapsed ? 'justify-center p-2' : 'px-3 py-2.5'}`}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">

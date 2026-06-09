@@ -38,7 +38,7 @@ function Input({ type = 'text', value, onChange, placeholder, autoComplete, righ
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all pr-11"
+        className="w-full bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all pr-11"
       />
       {right && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2">{right}</div>
@@ -57,7 +57,7 @@ function PasswordInput({ value, onChange, placeholder, autoComplete }) {
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+        className="w-full bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
       />
       <button
         type="button"
@@ -276,7 +276,7 @@ export default function Settings({ onNavigate }) {
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"
                 autoComplete="name"
-                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                className="w-full bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
               />
             </Field>
             <Field label="Email">
@@ -285,7 +285,7 @@ export default function Settings({ onNavigate }) {
                   type="text"
                   value={user?.email || ''}
                   disabled
-                  className="flex-1 bg-slate-100/60 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-600 dark:text-slate-400 text-sm cursor-not-allowed"
+                  className="flex-1 bg-slate-100 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-2.5 text-slate-600 dark:text-slate-400 text-sm cursor-not-allowed"
                 />
                 {isVerified(user) ? (
                   <span className="text-emerald-400 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
@@ -367,7 +367,7 @@ export default function Settings({ onNavigate }) {
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder="new@example.com"
                 autoComplete="email"
-                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+                className="w-full bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-4 py-2.5 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
               />
             </Field>
             {emailMsg && (

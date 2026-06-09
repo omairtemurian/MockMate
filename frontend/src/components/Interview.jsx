@@ -493,7 +493,7 @@ export default function Interview({ sessionData, onComplete }) {
           {/* Right: timer + controls + Q counter */}
           <div className="flex items-center gap-2">
             {/* Elapsed timer */}
-            <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-500 text-xs font-mono bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 rounded-full px-2.5 py-1">
+            <div className="hidden sm:flex items-center gap-1.5 text-slate-600 dark:text-slate-500 text-xs font-mono bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 rounded-full px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {fmtTime(elapsedSeconds)}
             </div>
@@ -633,7 +633,7 @@ export default function Interview({ sessionData, onComplete }) {
                   className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 border ${
                     webcamStream
                       ? 'bg-blue-500/15 border-blue-500/35 text-blue-400'
-                      : 'bg-slate-100/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500'
+                      : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500'
                   }`}
                 >
                   <CameraIcon on={!!webcamStream} />

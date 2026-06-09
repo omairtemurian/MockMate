@@ -22,7 +22,7 @@ function FacePanel({ session }) {
   const { eye_contact_pct: eye, head_stability_pct: head, face_confidence_score: conf } = session
   if (eye == null && head == null) return null
   return (
-    <div className="bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-4 space-y-2">
+    <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-4 space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest">👁 Body Language</p>
         {conf != null && (
@@ -110,7 +110,7 @@ function SessionDetail({ session }) {
       {/* AI score + Face */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {detail.ai_score != null && (
-          <div className="bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-4">
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-4">
             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">🤖 AI Score</p>
             <div className="flex items-center gap-3">
               <span className={`text-2xl font-black ${aiColor(detail.ai_score)}`}>
@@ -132,7 +132,7 @@ function SessionDetail({ session }) {
               ? Object.entries(a.filler_counts).sort((x, y) => y[1] - x[1]).slice(0, 3)
               : []
             return (
-              <div key={i} className="bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-3">
+              <div key={i} className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-2xl p-3">
                 <div className="flex items-start gap-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
                     a.score >= 8 ? 'bg-emerald-500/20 text-emerald-400' :
@@ -258,20 +258,11 @@ export default function Sessions({ onNavigate }) {
       <div className="relative z-10 p-6 sm:p-8 max-w-4xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white">Your Sessions</h1>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-              {loading ? 'Loading…' : `${sessions.length} interview${sessions.length !== 1 ? 's' : ''} completed`}
-            </p>
-          </div>
-          <button
-            onClick={() => onNavigate('landing')}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-5 py-2.5 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/30 whitespace-nowrap text-sm"
-          >
-            <span>🎙</span>
-            New Interview
-          </button>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Your Sessions</h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+            {loading ? 'Loading…' : `${sessions.length} interview${sessions.length !== 1 ? 's' : ''} completed`}
+          </p>
         </div>
 
         {loading ? (

@@ -46,7 +46,7 @@ function SectionCard({ title, icon, delay = 0, children }) {
 function ContactPill({ icon, text }) {
   if (!text) return null
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 px-3 py-1.5 rounded-full">
+    <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 px-3 py-1.5 rounded-full">
       <span>{icon}</span>
       <span className="truncate max-w-[160px]">{text}</span>
     </span>
@@ -59,7 +59,7 @@ function ExperienceCard({ exp, defaultOpen }) {
     <div className="border border-slate-200 dark:border-slate-700/30 rounded-2xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-start gap-3 p-4 text-left hover:bg-slate-100/60 dark:hover:bg-slate-800/30 transition-colors"
+        className="w-full flex items-start gap-3 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
       >
         <div className="mt-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
         <div className="flex-1 min-w-0">

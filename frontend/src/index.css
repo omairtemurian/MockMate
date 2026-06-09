@@ -4,8 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-amber-50/60 dark:bg-slate-950 text-slate-900 dark:text-white antialiased;
-    background-color: #fdf8f0;
+    @apply bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white antialiased;
+    background-color: #f8fafc;
   }
   html.dark body {
     background-color: rgb(2 6 23);
@@ -87,20 +87,20 @@
 
 /* ── Glass utility ── */
 .glass {
-  background: rgba(253, 248, 240, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 3px rgba(180, 140, 80, 0.10), 0 4px 16px rgba(180, 140, 80, 0.07);
+  box-shadow: 0 1px 3px rgba(15, 23, 37, 0.06), 0 4px 16px rgba(15, 23, 37, 0.04);
 }
 html.dark .glass {
   background: rgba(15, 23, 42, 0.65);
   box-shadow: none;
 }
 .glass-light {
-  background: rgba(253, 248, 240, 0.90);
+  background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 2px rgba(180, 140, 80, 0.08), 0 2px 8px rgba(180, 140, 80, 0.06);
+  box-shadow: 0 1px 2px rgba(15, 23, 37, 0.05), 0 2px 8px rgba(15, 23, 37, 0.03);
 }
 html.dark .glass-light {
   background: rgba(30, 41, 59, 0.55);

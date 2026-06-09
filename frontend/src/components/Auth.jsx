@@ -94,7 +94,7 @@ export default function Auth({ defaultMode = 'login' }) {
   // ── "Check your email" screen ─────────────────────────────────────────────
   if (verifyPending) {
     return (
-      <div className="relative min-h-screen dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
+      <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
         <BgOrbs />
         <div className="relative z-10 w-full max-w-md text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -105,7 +105,7 @@ export default function Auth({ defaultMode = 'login' }) {
           </div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Check your email</h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">We sent a verification link to</p>
-          <p className="text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
+          <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
           <p className="text-slate-600 dark:text-slate-400 text-xs mb-8">
             Click the link in the email to activate your account.<br />
             It may take a minute to arrive.
@@ -123,20 +123,20 @@ export default function Auth({ defaultMode = 'login' }) {
 
   // ── Main auth form ────────────────────────────────────────────────────────
   return (
-    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
       <BgOrbs />
 
       <div className="relative z-10 w-full max-w-md">
 
         {/* Email verified banner */}
         {verifiedBanner === 'success' && (
-          <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-400 text-sm">
+          <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-700 dark:text-emerald-400 text-sm">
             <IconCheckCircle className="w-4 h-4 flex-shrink-0" />
             <span>Email verified! You can now sign in.</span>
           </div>
         )}
         {verifiedBanner === 'error' && (
-          <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-400 text-sm">
+          <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">
             <IconXCircle className="w-4 h-4 flex-shrink-0" />
             <span>Verification link is invalid or has expired.</span>
           </div>
@@ -153,7 +153,7 @@ export default function Auth({ defaultMode = 'login' }) {
 
         {/* Card */}
         <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl"
-          style={{ boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 25px 50px rgba(0,0,0,0.5)' }}>
+          style={{ boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 8px 40px rgba(15,23,42,0.10)' }}>
 
           {/* Mode tabs */}
           <div className="flex gap-2 mb-7">
@@ -230,7 +230,7 @@ export default function Auth({ defaultMode = 'login' }) {
                   onClick={() => setShowPass(v => !v)}
                   tabIndex={-1}
                   title={showPass ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1"
                 >
                   <EyeIcon open={showPass} />
                 </button>
@@ -254,7 +254,7 @@ export default function Auth({ defaultMode = 'login' }) {
                         ? 'border-red-500/60 focus:ring-red-500/40 focus:border-red-500/50'
                         : confirmPassword && confirmPassword === password
                           ? 'border-emerald-500/50 focus:ring-emerald-500/40 focus:border-emerald-500/50'
-                          : 'border-slate-700/60 focus:ring-emerald-500/50 focus:border-emerald-500/40'
+                          : 'border-slate-200 dark:border-slate-700/60 focus:ring-emerald-500/50 focus:border-emerald-500/40'
                     }`}
                   />
                   <button
@@ -262,7 +262,7 @@ export default function Auth({ defaultMode = 'login' }) {
                     onClick={() => setShowConfirmPass(v => !v)}
                     tabIndex={-1}
                     title={showConfirmPass ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1"
                   >
                     <EyeIcon open={showConfirmPass} />
                   </button>
@@ -278,7 +278,7 @@ export default function Auth({ defaultMode = 'login' }) {
 
             {/* Email verification notice — register only */}
             {mode === 'register' && (
-              <div className="flex items-start gap-2.5 bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
+              <div className="flex items-start gap-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
                 <IconMail className="w-4 h-4 mt-0.5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
                 <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   We'll send a verification link to your email address to activate your account.
@@ -288,7 +288,7 @@ export default function Auth({ defaultMode = 'login' }) {
 
             {/* Error */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-400 text-sm">
+              <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -318,7 +318,7 @@ export default function Auth({ defaultMode = 'login' }) {
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
-              className="text-emerald-400 hover:text-emerald-300 font-semibold transition"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold transition"
             >
               {mode === 'login' ? 'Create one' : 'Sign in'}
             </button>

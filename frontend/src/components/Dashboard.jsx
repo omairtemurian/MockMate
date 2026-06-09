@@ -78,7 +78,7 @@ function ScoreChart({ sessions }) {
   const { theme } = useTheme()
   const tooltipStyle = theme === 'dark'
     ? { backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(51,65,85,0.6)', borderRadius: 12, backdropFilter: 'blur(12px)' }
-    : { backgroundColor: 'rgba(253,248,240,0.97)', border: '1px solid rgba(210,195,170,0.8)', borderRadius: 12 }
+    : { backgroundColor: 'rgba(255,255,255,0.97)', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 12 }
   const data = [...sessions]
     .reverse()
     .filter(s => s.overall_score != null)
@@ -234,7 +234,7 @@ function ActivityHeatmap({ sessions }) {
         </div>
         <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
           <span>Less</span>
-          {['bg-slate-800/60','bg-emerald-500/30','bg-emerald-500/60','bg-emerald-500'].map((c,i) => (
+          {['bg-slate-200 dark:bg-slate-800/60','bg-emerald-500/30','bg-emerald-500/60','bg-emerald-500'].map((c,i) => (
             <div key={i} className={`w-3.5 h-3.5 rounded-sm ${c}`} />
           ))}
           <span>More</span>
@@ -243,7 +243,7 @@ function ActivityHeatmap({ sessions }) {
       <div className="flex gap-1 flex-wrap">
         {days.map((d, i) => {
           const count = byDay[d.toDateString()] || 0
-          const bg = count === 0 ? 'bg-slate-800/60' : count === 1 ? 'bg-emerald-500/30' : count === 2 ? 'bg-emerald-500/60' : 'bg-emerald-500'
+          const bg = count === 0 ? 'bg-slate-200 dark:bg-slate-800/60' : count === 1 ? 'bg-emerald-500/30' : count === 2 ? 'bg-emerald-500/60' : 'bg-emerald-500'
           return (
             <div
               key={i}
@@ -405,19 +405,9 @@ export default function Dashboard({ onNavigate }) {
       <div className="relative z-10 p-6 sm:p-8 max-w-6xl mx-auto space-y-6">
 
         {/* ── Header ── */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white">Hi, {firstName} 👋</h1>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Get ready to ace your next interview</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => onNavigate('landing')}
-              className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-5 py-2.5 rounded-2xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/30 whitespace-nowrap text-sm"
-            >
-              <IconMic className="w-4 h-4" /> Start Interview
-            </button>
-          </div>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Hi, {firstName} 👋</h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Get ready to ace your next interview</p>
         </div>
 
         {loading ? (
@@ -530,7 +520,7 @@ export default function Dashboard({ onNavigate }) {
               <button
                 onClick={() => refresh(true)}
                 disabled={refreshing}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100/80 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 disabled:opacity-40"
+                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-700/40 disabled:opacity-40"
               >
                 <svg className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

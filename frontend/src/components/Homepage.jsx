@@ -157,7 +157,7 @@ export default function Homepage({ onLogin, onRegister }) {
           </button>
           <button
             onClick={onLogin}
-            className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-all"
+            className="hidden sm:block text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all"
           >
             Sign In
           </button>
@@ -288,7 +288,7 @@ export default function Homepage({ onLogin, onRegister }) {
             style={{
               background: theme === 'dark'
                 ? 'rgba(15,23,42,0.97)'
-                : 'rgba(253,248,240,0.97)',
+                : 'rgba(255,255,255,0.97)',
               boxShadow: '0 0 60px rgba(16,185,129,0.10), 0 4px 32px rgba(16,185,129,0.08)',
             }}
           >

@@ -124,7 +124,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
       </p>
       <div className="flex flex-wrap gap-2.5">
         {analytics.durationSeconds > 0 && (
-          <div className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in">
+          <div className="flex flex-col items-center bg-slate-100 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in">
             <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
               {durationLabel(analytics.durationSeconds)}
             </span>
@@ -133,7 +133,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
         )}
         {analytics.wpm > 0 && (
           <div
-            className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
+            className="flex flex-col items-center bg-slate-100 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
             style={{ animationDelay: "0.05s" }}
           >
             <span className={`font-bold text-sm ${wpmColor(analytics.wpm)}`}>
@@ -143,7 +143,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
           </div>
         )}
         <div
-          className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
+          className="flex flex-col items-center bg-slate-100 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
           style={{ animationDelay: "0.1s" }}
         >
           <span
@@ -155,7 +155,7 @@ function SpeechAnalyticsPanel({ analytics, questionIndex }) {
         </div>
         {analytics.wordCount > 0 && (
           <div
-            className="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
+            className="flex flex-col items-center bg-slate-100 dark:bg-slate-900/70 rounded-xl px-3 py-2 min-w-[64px] animate-stat-in"
             style={{ animationDelay: "0.15s" }}
           >
             <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
@@ -213,7 +213,7 @@ function AnswerCard({ item, index, role, onRetry }) {
         <ScoreBadge score={item.score} />
       </div>
 
-      <div className="bg-slate-100/60 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-800/60">
+      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-800/60">
         <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-1.5">
           Your Answer Summary
         </p>
@@ -356,7 +356,7 @@ function OverallSpeechSummary({ qaPairs, sessionDuration }) {
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-slate-100/80 dark:bg-slate-900/60 rounded-2xl p-4 text-center animate-stat-in"
+            className="bg-slate-100 dark:bg-slate-900/60 rounded-2xl p-4 text-center animate-stat-in"
             style={{ animationDelay: `${i * 0.07}s` }}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -377,7 +377,7 @@ function AnswerLengthChart({ answers }) {
   const { theme } = useTheme();
   const tooltipStyle = theme === 'dark'
     ? { backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(51,65,85,0.6)', borderRadius: 12, backdropFilter: 'blur(12px)' }
-    : { backgroundColor: 'rgba(253,248,240,0.97)', border: '1px solid rgba(210,195,170,0.8)', borderRadius: 12 };
+    : { backgroundColor: 'rgba(255,255,255,0.97)', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 12 };
   const data = answers.map((a, i) => ({
     name: `Q${i + 1}`,
     words: a.analytics?.wordCount || 0,
@@ -962,7 +962,7 @@ export default function Debrief({
             {scoring.detailed.map((item, index) => (
               <div
                 key={index}
-                className="bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 shadow-inner"
+                className="bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 shadow-inner"
               >
                 <h4 className="text-slate-900 dark:text-white font-semibold text-lg mb-2">
                   Answer {index + 1}:{" "}
@@ -1075,7 +1075,7 @@ export default function Debrief({
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
+          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800/60"
         >
           {sharing ? (
             <svg
@@ -1107,7 +1107,7 @@ export default function Debrief({
         <button
           onClick={handleExportPDF}
           disabled={exporting}
-          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
+          className="flex items-center justify-center gap-2 glass border border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-50 text-slate-600 dark:text-slate-300 font-semibold px-5 py-3.5 rounded-2xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800/60"
         >
           {exporting ? (
             <svg

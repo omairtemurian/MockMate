@@ -15,9 +15,9 @@ const FEATURES = [
 ]
 
 function FeatureValue({ v }) {
-  if (v === true)  return <span className="text-emerald-400 text-base">✓</span>
-  if (v === false) return <span className="text-slate-700 text-base">—</span>
-  return <span className="text-xs font-semibold text-slate-300">{v}</span>
+  if (v === true)  return <span className="text-emerald-500 dark:text-emerald-400 text-base">✓</span>
+  if (v === false) return <span className="text-slate-300 dark:text-slate-600 text-base">—</span>
+  return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{v}</span>
 }
 
 export default function ProModal({ onClose }) {
@@ -49,13 +49,13 @@ export default function ProModal({ onClose }) {
       style={{ background: 'rgba(2,6,23,0.75)', backdropFilter: 'blur(8px)' }}
     >
       <div
-        className="relative w-full max-w-lg rounded-3xl border border-slate-700/50 shadow-2xl overflow-hidden"
-        style={{ background: 'rgba(15,23,42,0.98)', backdropFilter: 'blur(24px)' }}
+        className="relative w-full max-w-lg rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-2xl overflow-y-auto max-h-[90vh] bg-white dark:bg-slate-950"
+        style={{ backdropFilter: 'blur(24px)' }}
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-600 hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-800/60"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -63,35 +63,35 @@ export default function ProModal({ onClose }) {
         </button>
 
         {/* Header */}
-        <div className="px-8 pt-8 pb-6 text-center border-b border-slate-800/60">
+        <div className="px-8 pt-8 pb-6 text-center border-b border-slate-100 dark:border-slate-800/60">
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
             <span className="text-2xl">👑</span>
           </div>
-          <h2 className="text-2xl font-black text-white">MockMate Pro</h2>
-          <p className="text-slate-400 text-sm mt-1.5">Unlock the full interview coaching experience</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">MockMate Pro</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5">Unlock the full interview coaching experience</p>
 
           {/* Price */}
           <div className="mt-4 flex items-baseline justify-center gap-1">
-            <span className="text-4xl font-black text-white">$9</span>
-            <span className="text-slate-500 text-sm font-medium">/ month</span>
+            <span className="text-4xl font-black text-slate-900 dark:text-white">$9</span>
+            <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">/ month</span>
           </div>
-          <p className="text-slate-600 text-xs mt-1">Cancel any time · No hidden fees</p>
+          <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">Cancel any time · No hidden fees</p>
         </div>
 
         {/* Feature table */}
         <div className="px-8 py-5">
           <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 mb-2 px-1">
             <span />
-            <span className="text-slate-500 text-xs font-bold uppercase tracking-wide text-center w-16">Free</span>
-            <span className="text-amber-400 text-xs font-bold uppercase tracking-wide text-center w-16">Pro</span>
+            <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wide text-center w-16">Free</span>
+            <span className="text-amber-500 dark:text-amber-400 text-xs font-bold uppercase tracking-wide text-center w-16">Pro</span>
           </div>
           <div className="space-y-0.5">
             {FEATURES.map((f, i) => (
               <div
                 key={i}
-                className="grid grid-cols-[1fr_auto_auto] gap-x-4 items-center px-3 py-2 rounded-xl hover:bg-slate-800/40 transition-colors"
+                className="grid grid-cols-[1fr_auto_auto] gap-x-4 items-center px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
               >
-                <span className="text-slate-300 text-sm">{f.label}</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm">{f.label}</span>
                 <div className="w-16 flex justify-center"><FeatureValue v={f.free} /></div>
                 <div className="w-16 flex justify-center"><FeatureValue v={f.pro} /></div>
               </div>
@@ -102,7 +102,7 @@ export default function ProModal({ onClose }) {
         {/* CTA footer */}
         <div className="px-8 pb-8 space-y-3">
           {error && (
-            <p className="text-center text-red-400 text-xs">{error}</p>
+            <p className="text-center text-red-600 dark:text-red-400 text-xs">{error}</p>
           )}
           <button
             onClick={handleUpgrade}
@@ -111,9 +111,9 @@ export default function ProModal({ onClose }) {
           >
             {loading ? 'Redirecting to checkout…' : 'Upgrade to Pro →'}
           </button>
-          <p className="text-center text-slate-700 text-xs">
+          <p className="text-center text-slate-400 dark:text-slate-600 text-xs">
             Secure checkout via{' '}
-            <span className="text-slate-500 font-semibold">Polar</span>
+            <span className="text-slate-600 dark:text-slate-400 font-semibold">Polar</span>
             {' '}· Payments processed by Stripe
           </p>
         </div>
