@@ -28,6 +28,9 @@ from database import (
     db_confirm_email_change,
     db_update_email,
     db_cancel_email_change,
+    db_set_reset_token,
+    db_get_user_by_reset_token,
+    db_clear_reset_token,
 )
 
 SECRET_KEY        = os.getenv("JWT_SECRET", "change-me-use-a-long-random-string-in-production")
@@ -209,6 +212,20 @@ def send_email_change_email(to_email: str, name: str, token: str):
     )
 
 
+def send_password_reset_email(to_email: str, name: str, token: str):
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    first_name   = name.split()[0] if name else "there"
+    _send_email(
+        to_email,
+        subject    = "Reset your MockMate password",
+        first_name = first_name,
+        body_text  = "You requested a password reset for your MockMate account. Click the button below to choose a new password. This link expires in 1 hour.",
+        cta_url    = f"{frontend_url}?reset_token={token}",
+        cta_label  = "Reset Password",
+        footer     = "If you didn't request a password reset, you can safely ignore this email — your password won't change.",
+    )
+
+
 # ── DB helpers ─────────────────────────────────────────────────────────────────
 
 def db_get_user_by_email(email: str) -> dict | None:
@@ -291,6 +308,13 @@ class UpdatePasswordRequest(BaseModel):
 
 class ChangeEmailRequest(BaseModel):
     new_email: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token:        str
+    new_password: str
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
@@ -450,4 +474,30 @@ def update_password(req: UpdatePasswordRequest, current_user: dict = Depends(get
     if not current_hash or not verify_password(req.current_password, current_hash):
         raise HTTPException(status_code=401, detail="Current password is incorrect")
     db_update_password(str(current_user["id"]), hash_password(req.new_password))
+    return {"ok": True}
+
+
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    # Always return success to avoid leaking which emails are registered
+    email = req.email.strip().lower()
+    user  = db_get_user_by_email(email)
+    if user and user.get("email_verified"):
+        token = _make_token(hours=1)
+        db_set_reset_token(str(user["id"]), token)
+        send_password_reset_email(email, user.get("name") or "", token)
+    return {"ok": True}
+
+
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if _token_expired(req.token):
+        raise HTTPException(status_code=400, detail="Reset link has expired. Please request a new one.")
+    user = db_get_user_by_reset_token(req.token)
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or already-used reset link.")
+    db_update_password(str(user["id"]), hash_password(req.new_password))
+    db_clear_reset_token(str(user["id"]))
     return {"ok": True}

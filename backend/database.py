@@ -181,6 +181,9 @@ def migrate_tables():
         # users — email change flow
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pending_email      TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_change_token TEXT",
+
+        # users — password reset flow
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT",
     ]
     conn = get_connection()
     try:
@@ -473,6 +476,32 @@ def get_cv_profile(user_id: str) -> dict | None:
             }
     finally:
         conn.close()
+
+
+# ── Password reset ────────────────────────────────────────────────────────────
+
+def db_set_reset_token(user_id: str, token: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET reset_token = %s WHERE id = %s", (token, user_id))
+
+
+def db_get_user_by_reset_token(token: str) -> dict | None:
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, email, name FROM users WHERE reset_token = %s", (token,)
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return dict(zip([d[0] for d in cur.description], row))
+
+
+def db_clear_reset_token(user_id: str):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET reset_token = NULL WHERE id = %s", (user_id,))
 
 
 # ── Run directly: python database.py ──────────────────────────────────────────

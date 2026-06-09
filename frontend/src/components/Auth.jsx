@@ -27,47 +27,94 @@ function EyeIcon({ open }) {
   )
 }
 
+const CARD_STYLE = {
+  backdropFilter: 'blur(24px)',
+  boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 8px 40px rgba(15,23,42,0.10)',
+}
+
 export default function Auth({ defaultMode = 'login' }) {
   const { login } = useAuth()
-  const [mode,          setMode]          = useState(defaultMode)
-  const [name,          setName]          = useState('')
-  const [email,         setEmail]         = useState('')
+  const [mode,            setMode]            = useState(defaultMode)
+  const [name,            setName]            = useState('')
+  const [email,           setEmail]           = useState('')
   const [password,        setPassword]        = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPass,        setShowPass]        = useState(false)
   const [showConfirmPass, setShowConfirmPass] = useState(false)
   const [error,           setError]           = useState('')
-  const [loading,       setLoading]       = useState(false)
-  const [verifyPending, setVerifyPending] = useState(null) // email string when awaiting verification
-  const [verifiedBanner, setVerifiedBanner] = useState(null) // 'success' | 'error'
+  const [loading,         setLoading]         = useState(false)
+  const [verifyPending,   setVerifyPending]   = useState(null)  // email | '__forgot__'
+  const [verifiedBanner,  setVerifiedBanner]  = useState(null)  // 'success' | 'error'
+  const [resetToken,      setResetToken]      = useState(null)
+  const [resetDone,       setResetDone]       = useState(false)
 
-  // Handle ?verified=true or ?verified=error coming back from the email link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+
     const v = params.get('verified')
     if (v === 'true')  setVerifiedBanner('success')
     if (v === 'error') setVerifiedBanner('error')
-    if (v) window.history.replaceState({}, '', window.location.pathname)
+
+    const rt = params.get('reset_token')
+    if (rt) { setResetToken(rt); setMode('reset') }
+
+    if (v || rt) window.history.replaceState({}, '', window.location.pathname)
   }, [])
 
   const switchMode = (m) => {
-    setMode(m); setError(''); setShowPass(false); setShowConfirmPass(false); setConfirmPassword('')
+    setMode(m); setError(''); setShowPass(false); setShowConfirmPass(false)
+    setPassword(''); setConfirmPassword('')
+  }
+
+  const handleForgot = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      await fetch(`${BACKEND_URL}/auth/forgot-password`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email }),
+      })
+      setVerifyPending('__forgot__')
+    } catch {
+      setError('Could not connect to the server.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReset = async (e) => {
+    e.preventDefault()
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return }
+    setError('')
+    setLoading(true)
+    try {
+      const res  = await fetch(`${BACKEND_URL}/auth/reset-password`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token: resetToken, new_password: password }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.detail || 'Something went wrong.'); return }
+      setResetDone(true)
+    } catch {
+      setError('Could not connect to the server.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
     if (mode === 'register' && password !== confirmPassword) {
       setError('Passwords do not match.')
       return
     }
-
     setLoading(true)
-
     const endpoint = mode === 'register' ? '/auth/register' : '/auth/login'
     const body     = mode === 'register' ? { email, password, name } : { email, password }
-
     try {
       const res  = await fetch(`${BACKEND_URL}${endpoint}`, {
         method:  'POST',
@@ -75,14 +122,8 @@ export default function Auth({ defaultMode = 'login' }) {
         body:    JSON.stringify(body),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.detail || 'Something went wrong.')
-        return
-      }
-      if (data.needs_verification) {
-        setVerifyPending(data.email)
-        return
-      }
+      if (!res.ok) { setError(data.detail || 'Something went wrong.'); return }
+      if (data.needs_verification) { setVerifyPending(data.email); return }
       login(data.token, data.user)
     } catch {
       setError('Could not connect to the server. Is the backend running?')
@@ -91,240 +132,334 @@ export default function Auth({ defaultMode = 'login' }) {
     }
   }
 
-  // ── "Check your email" screen ─────────────────────────────────────────────
-  if (verifyPending) {
-    return (
-      <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
-        <BgOrbs />
-        <div className="relative z-10 w-full max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Check your email</h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">We sent a verification link to</p>
-          <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm mb-6">{verifyPending}</p>
-          <p className="text-slate-600 dark:text-slate-400 text-xs mb-8">
-            Click the link in the email to activate your account.<br />
-            It may take a minute to arrive.
-          </p>
-          <button
-            onClick={() => { setVerifyPending(null); setMode('login') }}
-            className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors"
-          >
-            ← Back to sign in
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Main auth form ────────────────────────────────────────────────────────
-  return (
+  // Shared page wrapper with logo
+  const shell = (children) => (
     <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 overflow-hidden">
       <BgOrbs />
-
       <div className="relative z-10 w-full max-w-md">
-
-        {/* Email verified banner */}
-        {verifiedBanner === 'success' && (
-          <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-700 dark:text-emerald-400 text-sm">
-            <IconCheckCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Email verified! You can now sign in.</span>
-          </div>
-        )}
-        {verifiedBanner === 'error' && (
-          <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">
-            <IconXCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Verification link is invalid or has expired.</span>
-          </div>
-        )}
-
-        {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-black tracking-tight">
             <span className="text-slate-900 dark:text-white">Mock</span>
             <span className="gradient-text">Mate</span>
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">AI-Powered Voice Interview Practice</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">AI-Powered Voice Interview Practice</p>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+
+  // ── "Check your email" screen (verify + forgot) ──────────────────────────────
+  if (verifyPending) {
+    const isForgot = verifyPending === '__forgot__'
+    return shell(
+      <div className="text-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Check your email</h2>
+        {!isForgot && (
+          <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm mb-1">{verifyPending}</p>
+        )}
+        <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-8 mt-2 max-w-xs mx-auto">
+          {isForgot
+            ? "If an account exists for that address, a password reset link has been sent. It expires in 1 hour."
+            : "Click the link in the email to activate your account. It may take a minute to arrive."
+          }
+        </p>
+        <button
+          onClick={() => { setVerifyPending(null); switchMode('login') }}
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 text-sm transition-colors"
+        >
+          ← Back to sign in
+        </button>
+      </div>
+    )
+  }
+
+  // ── Reset password form (arrived via email link) ─────────────────────────────
+  if (mode === 'reset') {
+    return shell(
+      <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl" style={CARD_STYLE}>
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">Set new password</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Choose a strong password for your account</p>
         </div>
 
-        {/* Card */}
-        <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl"
-          style={{ boxShadow: '0 0 60px rgba(16,185,129,0.06), 0 8px 40px rgba(15,23,42,0.10)' }}>
-
-          {/* Mode tabs */}
-          <div className="flex gap-2 mb-7">
-            {[
-              { key: 'login',    label: 'Sign In' },
-              { key: 'register', label: 'Create Account' },
-            ].map(t => (
-              <button
-                key={t.key}
-                onClick={() => switchMode(t.key)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  mode === t.key
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Name — register only */}
-            {mode === 'register' && (
-              <div>
-                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  autoComplete="name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Jane Smith"
-                  className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
-                />
-              </div>
-            )}
-
-            {/* Email */}
-            <div>
-              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Email</label>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="jane@example.com"
-                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
-              />
+        {resetDone ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-700 dark:text-emerald-400 text-sm">
+              <IconCheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Password updated! You can now sign in.</span>
             </div>
-
-            {/* Password */}
+            <button
+              onClick={() => { setResetToken(null); setResetDone(false); switchMode('login') }}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold py-3.5 rounded-2xl transition-all hover:scale-[1.02] shadow-lg shadow-emerald-500/30"
+            >
+              Go to sign in
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleReset} className="space-y-4">
             <div>
-              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">
-                Password
-                {mode === 'register' && (
-                  <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal text-xs">min. 6 characters</span>
-                )}
-              </label>
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">New Password</label>
               <div className="relative">
                 <input
-                  type={showPass ? 'text' : 'password'}
-                  required
-                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  type={showPass ? 'text' : 'password'} required value={password}
+                  onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                   className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(v => !v)}
-                  tabIndex={-1}
-                  title={showPass ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1"
-                >
+                <button type="button" onClick={() => setShowPass(v => !v)} tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1">
                   <EyeIcon open={showPass} />
                 </button>
               </div>
             </div>
-
-            {/* Confirm Password — register only */}
-            {mode === 'register' && (
-              <div>
-                <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPass ? 'text' : 'password'}
-                    required
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className={`w-full bg-white dark:bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
-                      confirmPassword && confirmPassword !== password
-                        ? 'border-red-500/60 focus:ring-red-500/40 focus:border-red-500/50'
-                        : confirmPassword && confirmPassword === password
-                          ? 'border-emerald-500/50 focus:ring-emerald-500/40 focus:border-emerald-500/50'
-                          : 'border-slate-200 dark:border-slate-700/60 focus:ring-emerald-500/50 focus:border-emerald-500/40'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPass(v => !v)}
-                    tabIndex={-1}
-                    title={showConfirmPass ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1"
-                  >
-                    <EyeIcon open={showConfirmPass} />
-                  </button>
-                  {confirmPassword && confirmPassword === password && (
-                    <span className="absolute right-9 top-1/2 -translate-y-1/2 text-emerald-400 text-xs">✓</span>
-                  )}
-                </div>
-                {confirmPassword && confirmPassword !== password && (
-                  <p className="text-red-400 text-xs mt-1.5 ml-1">Passwords do not match</p>
-                )}
+            <div>
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPass ? 'text' : 'password'} required value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••"
+                  className={`w-full bg-white dark:bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
+                    confirmPassword && confirmPassword !== password
+                      ? 'border-red-500/60 focus:ring-red-500/40'
+                      : confirmPassword && confirmPassword === password
+                        ? 'border-emerald-500/50 focus:ring-emerald-500/40'
+                        : 'border-slate-200 dark:border-slate-700/60 focus:ring-emerald-500/50'
+                  }`}
+                />
+                <button type="button" onClick={() => setShowConfirmPass(v => !v)} tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1">
+                  <EyeIcon open={showConfirmPass} />
+                </button>
               </div>
-            )}
-
-            {/* Email verification notice — register only */}
-            {mode === 'register' && (
-              <div className="flex items-start gap-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
-                <IconMail className="w-4 h-4 mt-0.5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                  We'll send a verification link to your email address to activate your account.
-                </p>
-              </div>
-            )}
-
-            {/* Error */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                  </svg>
-                  {mode === 'register' ? 'Creating account...' : 'Signing in...'}
-                </>
-              ) : (
-                mode === 'register' ? 'Create Account' : 'Sign In'
+              {confirmPassword && confirmPassword !== password && (
+                <p className="text-red-500 text-xs mt-1.5 ml-1">Passwords do not match</p>
               )}
+            </div>
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">{error}</div>
+            )}
+
+            <button type="submit" disabled={loading}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl transition-all hover:scale-[1.02] shadow-lg shadow-emerald-500/30 mt-2">
+              {loading ? 'Saving…' : 'Set New Password'}
             </button>
           </form>
-
-          {/* Switch mode link */}
-          <p className="text-center text-slate-600 dark:text-slate-400 text-sm mt-5">
-            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
-              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold transition"
-            >
-              {mode === 'login' ? 'Create one' : 'Sign in'}
-            </button>
-          </p>
-        </div>
+        )}
       </div>
-    </div>
+    )
+  }
+
+  // ── Forgot password form ─────────────────────────────────────────────────────
+  if (mode === 'forgot') {
+    return shell(
+      <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl" style={CARD_STYLE}>
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-500 dark:from-slate-600 dark:to-slate-700 flex items-center justify-center">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">Forgot password?</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Enter your email and we'll send a reset link</p>
+        </div>
+
+        <form onSubmit={handleForgot} className="space-y-4">
+          <div>
+            <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Email</label>
+            <input
+              type="email" required autoComplete="email" value={email}
+              onChange={e => setEmail(e.target.value)} placeholder="jane@example.com"
+              className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">{error}</div>
+          )}
+
+          <button type="submit" disabled={loading}
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl transition-all hover:scale-[1.02] shadow-lg shadow-emerald-500/30 mt-2">
+            {loading ? 'Sending…' : 'Send Reset Link'}
+          </button>
+        </form>
+
+        <p className="text-center text-slate-500 dark:text-slate-400 text-sm mt-5">
+          <button onClick={() => switchMode('login')}
+            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold transition">
+            ← Back to sign in
+          </button>
+        </p>
+      </div>
+    )
+  }
+
+  // ── Main auth form (login / register) ────────────────────────────────────────
+  return shell(
+    <>
+      {verifiedBanner === 'success' && (
+        <div className="mb-4 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 text-emerald-700 dark:text-emerald-400 text-sm">
+          <IconCheckCircle className="w-4 h-4 flex-shrink-0" />
+          <span>Email verified! You can now sign in.</span>
+        </div>
+      )}
+      {verifiedBanner === 'error' && (
+        <div className="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">
+          <IconXCircle className="w-4 h-4 flex-shrink-0" />
+          <span>Verification link is invalid or has expired.</span>
+        </div>
+      )}
+
+      <div className="glass border border-slate-200 dark:border-slate-700/40 rounded-3xl p-8 shadow-2xl" style={CARD_STYLE}>
+
+        {/* Mode tabs */}
+        <div className="flex gap-2 mb-7">
+          {[
+            { key: 'login',    label: 'Sign In' },
+            { key: 'register', label: 'Create Account' },
+          ].map(t => (
+            <button key={t.key} onClick={() => switchMode(t.key)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                mode === t.key
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {mode === 'register' && (
+            <div>
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Full Name</label>
+              <input
+                type="text" required autoComplete="name" value={name}
+                onChange={e => setName(e.target.value)} placeholder="Jane Smith"
+                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Email</label>
+            <input
+              type="email" required autoComplete="email" value={email}
+              onChange={e => setEmail(e.target.value)} placeholder="jane@example.com"
+              className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-slate-600 dark:text-slate-300 text-sm font-semibold">
+                Password
+                {mode === 'register' && (
+                  <span className="ml-2 text-slate-400 dark:text-slate-500 font-normal text-xs">min. 6 characters</span>
+                )}
+              </label>
+              {mode === 'login' && (
+                <button type="button" onClick={() => switchMode('forgot')}
+                  className="text-xs text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                type={showPass ? 'text' : 'password'} required
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+                className="w-full bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/40 text-sm transition-all"
+              />
+              <button type="button" onClick={() => setShowPass(v => !v)} tabIndex={-1}
+                title={showPass ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1">
+                <EyeIcon open={showPass} />
+              </button>
+            </div>
+          </div>
+
+          {mode === 'register' && (
+            <div>
+              <label className="block text-slate-600 dark:text-slate-300 text-sm font-semibold mb-1.5">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPass ? 'text' : 'password'} required autoComplete="new-password"
+                  value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••"
+                  className={`w-full bg-white dark:bg-slate-900/70 border rounded-2xl px-4 py-3 pr-11 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 text-sm transition-all ${
+                    confirmPassword && confirmPassword !== password
+                      ? 'border-red-500/60 focus:ring-red-500/40 focus:border-red-500/50'
+                      : confirmPassword && confirmPassword === password
+                        ? 'border-emerald-500/50 focus:ring-emerald-500/40 focus:border-emerald-500/50'
+                        : 'border-slate-200 dark:border-slate-700/60 focus:ring-emerald-500/50 focus:border-emerald-500/40'
+                  }`}
+                />
+                <button type="button" onClick={() => setShowConfirmPass(v => !v)} tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors p-1">
+                  <EyeIcon open={showConfirmPass} />
+                </button>
+                {confirmPassword && confirmPassword === password && (
+                  <span className="absolute right-9 top-1/2 -translate-y-1/2 text-emerald-500 text-xs">✓</span>
+                )}
+              </div>
+              {confirmPassword && confirmPassword !== password && (
+                <p className="text-red-500 text-xs mt-1.5 ml-1">Passwords do not match</p>
+              )}
+            </div>
+          )}
+
+          {mode === 'register' && (
+            <div className="flex items-start gap-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/40 rounded-2xl px-4 py-3">
+              <IconMail className="w-4 h-4 mt-0.5 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+                We'll send a verification link to your email address to activate your account.
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-red-600 dark:text-red-400 text-sm">{error}</div>
+          )}
+
+          <button type="submit" disabled={loading}
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.02] shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 mt-2">
+            {loading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                {mode === 'register' ? 'Creating account...' : 'Signing in...'}
+              </>
+            ) : (
+              mode === 'register' ? 'Create Account' : 'Sign In'
+            )}
+          </button>
+        </form>
+
+        <p className="text-center text-slate-500 dark:text-slate-400 text-sm mt-5">
+          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          <button
+            onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
+            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 font-semibold transition"
+          >
+            {mode === 'login' ? 'Create one' : 'Sign in'}
+          </button>
+        </p>
+      </div>
+    </>
   )
 }

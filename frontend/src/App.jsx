@@ -57,7 +57,9 @@ function AppInner() {
   const [view,             setView]             = useState('landing')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showProModal,     setShowProModal]     = useState(false)
-  const [showAuth,         setShowAuth]         = useState(false)
+  const [showAuth,         setShowAuth]         = useState(
+    () => new URLSearchParams(window.location.search).has('reset_token')
+  )
   const [authMode,         setAuthMode]         = useState('login')
   const [sessionData,      setSessionData]      = useState(null)
   const [qaPairs,          setQaPairs]          = useState([])
