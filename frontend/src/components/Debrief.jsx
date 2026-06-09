@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { wpmColor, durationLabel } from "../utils/speechAnalytics";
 import { saveSessionToDB } from "../utils/api";
-import { getUserId } from "../utils/userId";
+import { getStoredToken } from "../context/AuthContext";
 import RetryModal from "./RetryModal";
 import { scoreAllAnswers } from "../utils/scoring";
 import { BACKEND_URL } from "../utils/config";
@@ -703,12 +703,11 @@ export default function Debrief({
 
         const res = await fetch(`${BACKEND_URL}/debrief`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${getStoredToken()}` },
           body: JSON.stringify({
             qa_pairs: cleanPairs,
             role: safeRole,
             language: normalizedLang,
-            user_id: getUserId(),
           }),
         });
 

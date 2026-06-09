@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchCVProfile, uploadCVProfile, fetchSessions } from '../utils/api'
-import { getUserId } from '../utils/userId'
+import { getStoredToken } from '../context/AuthContext'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { IconMic } from '../utils/icons'
 import { useTheme } from '../context/ThemeContext'
@@ -304,8 +304,8 @@ export default function Landing({ onStart, user, onUpgrade }) {
     try {
       const res = await fetch(`${BACKEND_URL}/parse-jd`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jd_text: jd, cv_text: cvText || null, difficulty, company_name: companyName.trim() || null, interview_type: interviewType, language, user_id: getUserId() }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getStoredToken()}` },
+        body: JSON.stringify({ jd_text: jd, cv_text: cvText || null, difficulty, company_name: companyName.trim() || null, interview_type: interviewType, language }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || 'Failed to parse JD') }
       onStart({ ...(await res.json()), difficulty, interview_type: interviewType, language })

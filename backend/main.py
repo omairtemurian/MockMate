@@ -1,9 +1,13 @@
 import os
 import re
 import httpx
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from rate_limit import limiter
+from auth import router as auth_router, get_current_user
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional, Any
@@ -29,7 +33,6 @@ from helpers import (
     extract_text_from_docx,
 )
 from database import init_db, upsert_user, save_session, get_sessions, get_session_detail, save_cv_profile, get_cv_profile, delete_session, get_connection
-from auth import router as auth_router
 from billing import router as billing_router
 from admin import router as admin_router
 
@@ -38,15 +41,19 @@ load_dotenv()
 
 app = FastAPI(title="MockMate API")
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-REQUIRED_ENV = ["OPENROUTER_API_KEY", "JWT_SECRET", "DATABASE_URL"]
+# JWT_SECRET is enforced at import time in auth.py (raises RuntimeError if missing)
+REQUIRED_ENV = ["OPENROUTER_API_KEY", "DATABASE_URL"]
 OPTIONAL_ENV = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "ELEVENLABS_API_KEY",
                 "API_BASE_URL", "FRONTEND_URL",
                 "POLAR_ACCESS_TOKEN", "POLAR_PRODUCT_ID", "POLAR_WEBHOOK_SECRET"]
 
+_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[_frontend_url, "http://localhost:5173", "http://localhost:5174"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -131,7 +138,6 @@ class ParseJDRequest(BaseModel):
     company_name: Optional[str] = None
     interview_type: Optional[str] = "full"
     language: Optional[str] = "en-US"
-    user_id: Optional[str] = None
 
 
 class QuestionBankRequest(BaseModel):
@@ -166,7 +172,6 @@ class DebriefRequest(BaseModel):
     qa_pairs: List[QAPair]
     role: Optional[str] = "the position"
     language: Optional[str] = "en-US"
-    user_id: Optional[str] = None
 
 
 # --- Endpoints ---
@@ -223,11 +228,11 @@ async def extract_text(file: UploadFile = File(...)):
 
 
 @app.post("/parse-jd")
-async def parse_jd(req: ParseJDRequest):
+async def parse_jd(req: ParseJDRequest, current_user: dict = Depends(get_current_user)):
     if not req.jd_text.strip():
         raise HTTPException(status_code=400, detail="jd_text is required")
 
-    check_ai_consent(req.user_id)
+    check_ai_consent(str(current_user["id"]))
 
     if req.cv_text and req.cv_text.strip():
         safe_cv = strip_contact_pii(req.cv_text.strip())
@@ -398,21 +403,26 @@ async def respond(req: RespondRequest):
     return {"reply": reply, "done": done, "followup": False}
 
 
+MAX_RECORDING_SIZE = 50 * 1024 * 1024  # 50 MB
+
 @app.post("/upload-recording")
-async def upload_recording(file: UploadFile = File(...)):
+async def upload_recording(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     recordings_dir = "recordings"
     os.makedirs(recordings_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     filename = f"mockmate-recording-{timestamp}.webm"
     file_path = os.path.join(recordings_dir, filename)
     content = await file.read()
+    if len(content) > MAX_RECORDING_SIZE:
+        raise HTTPException(status_code=413, detail="Recording file too large (max 50 MB)")
     with open(file_path, "wb") as f:
         f.write(content)
     return {"message": "Recording saved successfully", "filename": filename, "path": file_path}
 
 
 @app.post("/cv-profile")
-async def upload_cv_profile(user_id: str = Form(...), file: UploadFile = File(...)):
+async def upload_cv_profile(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    user_id = str(current_user["id"])
     filename = file.filename or ""
     fname_lower = filename.lower()
     file_bytes = await file.read()
@@ -457,15 +467,16 @@ async def upload_cv_profile(user_id: str = Form(...), file: UploadFile = File(..
 
 
 @app.get("/cv-profile")
-def get_cv_profile_endpoint(user_id: str):
-    profile = get_cv_profile(user_id)
+def get_cv_profile_endpoint(current_user: dict = Depends(get_current_user)):
+    profile = get_cv_profile(str(current_user["id"]))
     if not profile:
         raise HTTPException(status_code=404, detail="No CV profile found")
     return profile
 
 
 @app.post("/analyse-cv")
-async def analyse_cv(user_id: str):
+async def analyse_cv(current_user: dict = Depends(get_current_user)):
+    user_id = str(current_user["id"])
     check_ai_consent(user_id)
 
     # Check pro plan
@@ -494,11 +505,11 @@ async def analyse_cv(user_id: str):
 
 
 @app.post("/debrief")
-async def debrief(req: DebriefRequest):
+async def debrief(req: DebriefRequest, current_user: dict = Depends(get_current_user)):
     if len(req.qa_pairs) == 0:
         raise HTTPException(status_code=400, detail="qa_pairs is required")
 
-    check_ai_consent(req.user_id)
+    check_ai_consent(str(current_user["id"]))
 
     qa_text = "\n\n".join(
         [f"Q{i+1}: {pair.question}\nA{i+1}: {pair.answer}" for i, pair in enumerate(req.qa_pairs)]
@@ -571,7 +582,6 @@ class FaceMetricsIn(BaseModel):
 
 
 class SaveSessionRequest(BaseModel):
-    user_id:          str
     role:             Optional[str]        = "the position"
     difficulty:       Optional[str]        = "Mid"
     interview_type:   Optional[str]        = "full"
@@ -590,12 +600,13 @@ class SaveSessionRequest(BaseModel):
 
 
 @app.post("/sessions", status_code=201)
-def create_session(req: SaveSessionRequest):
+def create_session(req: SaveSessionRequest, current_user: dict = Depends(get_current_user)):
     try:
-        upsert_user(req.user_id)
+        user_id = str(current_user["id"])
+        upsert_user(user_id)
         fm = req.face_metrics or FaceMetricsIn()
         session_id = save_session(
-            user_id               = req.user_id,
+            user_id               = user_id,
             role                  = req.role,
             difficulty            = req.difficulty,
             interview_type        = req.interview_type,
@@ -621,9 +632,9 @@ def create_session(req: SaveSessionRequest):
 
 
 @app.get("/sessions")
-def list_sessions(user_id: str):
+def list_sessions(current_user: dict = Depends(get_current_user)):
     try:
-        sessions = get_sessions(user_id)
+        sessions = get_sessions(str(current_user["id"]))
         for s in sessions:
             if s.get("created_at"):
                 s["created_at"] = s["created_at"].isoformat()
@@ -633,9 +644,10 @@ def list_sessions(user_id: str):
 
 
 @app.get("/sessions/filler-stats")
-def filler_stats(user_id: str):
+def filler_stats(current_user: dict = Depends(get_current_user)):
     """Aggregate top filler words across all answers for a user."""
     try:
+        user_id = str(current_user["id"])
         conn = get_connection()
         try:
             with conn.cursor() as cur:
@@ -662,9 +674,9 @@ def filler_stats(user_id: str):
 
 
 @app.get("/sessions/{session_id}")
-def session_detail(session_id: int, user_id: str):
+def session_detail(session_id: int, current_user: dict = Depends(get_current_user)):
     try:
-        data = get_session_detail(session_id, user_id)
+        data = get_session_detail(session_id, str(current_user["id"]))
         if not data:
             raise HTTPException(status_code=404, detail="Session not found")
         if data.get("created_at"):
@@ -677,8 +689,8 @@ def session_detail(session_id: int, user_id: str):
 
 
 @app.delete("/sessions/{session_id}")
-def remove_session(session_id: int, user_id: str):
-    deleted = delete_session(session_id, user_id)
+def remove_session(session_id: int, current_user: dict = Depends(get_current_user)):
+    deleted = delete_session(session_id, str(current_user["id"]))
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"deleted": True}

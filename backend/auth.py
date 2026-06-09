@@ -6,13 +6,14 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import bcrypt as _bcrypt
 from jose import jwt, JWTError
 from pydantic import BaseModel
 from typing import Optional
+from rate_limit import limiter
 
 from database import (
     get_connection,
@@ -29,7 +30,10 @@ from database import (
     db_cancel_email_change,
 )
 
-SECRET_KEY        = os.getenv("JWT_SECRET", "change-me-use-a-long-random-string-in-production")
+_jwt_secret = os.getenv("JWT_SECRET")
+if not _jwt_secret:
+    raise RuntimeError("JWT_SECRET environment variable is required but not set")
+SECRET_KEY        = _jwt_secret
 ALGORITHM         = "HS256"
 TOKEN_EXPIRE_DAYS = 30
 
@@ -245,14 +249,15 @@ class ChangeEmailRequest(BaseModel):
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
 @router.post("/register", status_code=201)
-def register(req: RegisterRequest):
+@limiter.limit("5/minute")
+def register(request: Request, req: RegisterRequest):
     email = req.email.strip().lower()
     name  = req.name.strip()
 
     if not email or not req.password or not name:
         raise HTTPException(status_code=400, detail="email, password, and name are required")
-    if len(req.password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if len(req.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     if db_get_user_by_email(email):
         raise HTTPException(status_code=409, detail="An account with this email already exists")
 
@@ -280,7 +285,8 @@ def register(req: RegisterRequest):
 
 
 @router.post("/login")
-def login(req: LoginRequest):
+@limiter.limit("10/minute")
+def login(request: Request, req: LoginRequest):
     user = db_get_user_by_email(req.email)
     if not user or not user.get("password_hash"):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -517,8 +523,8 @@ def update_profile(req: UpdateProfileRequest, current_user: dict = Depends(get_c
 
 @router.patch("/password")
 def update_password(req: UpdatePasswordRequest, current_user: dict = Depends(get_current_user)):
-    if len(req.new_password) < 6:
-        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    if len(req.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
     current_hash = db_get_password_hash(str(current_user["id"]))
     if not current_hash or not verify_password(req.current_password, current_hash):
         raise HTTPException(status_code=401, detail="Current password is incorrect")

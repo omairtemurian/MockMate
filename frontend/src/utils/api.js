@@ -1,6 +1,10 @@
-import { getUserId } from './userId'
 import { BACKEND_URL } from './config'
 import { getStoredToken } from '../context/AuthContext'
+
+function authHeaders(extra = {}) {
+  const token = getStoredToken()
+  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra }
+}
 
 // ── Admin API ──────────────────────────────────────────────────────────────────
 
@@ -89,9 +93,8 @@ export async function saveSessionToDB(debrief, qaPairs, role, difficulty, interv
 
     const res = await fetch(`${BACKEND_URL}/sessions`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
-        user_id:          getUserId(),
         role:             role           || 'the position',
         difficulty:       difficulty     || 'Mid',
         interview_type:   interviewType  || 'full',
@@ -125,7 +128,7 @@ export async function saveSessionToDB(debrief, qaPairs, role, difficulty, interv
  */
 export async function fetchSessions() {
   try {
-    const res = await fetch(`${BACKEND_URL}/sessions?user_id=${getUserId()}`)
+    const res = await fetch(`${BACKEND_URL}/sessions`, { headers: authHeaders() })
     if (!res.ok) return []
     const data = await res.json()
     return data.sessions || []
@@ -140,7 +143,7 @@ export async function fetchSessions() {
  */
 export async function fetchFillerStats() {
   try {
-    const res = await fetch(`${BACKEND_URL}/sessions/filler-stats?user_id=${getUserId()}`)
+    const res = await fetch(`${BACKEND_URL}/sessions/filler-stats`, { headers: authHeaders() })
     if (!res.ok) return []
     const data = await res.json()
     return data.fillers || []
@@ -156,8 +159,9 @@ export async function fetchFillerStats() {
  */
 export async function deleteSession(sessionId) {
   try {
-    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}?user_id=${getUserId()}`, {
+    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     })
     return res.ok
   } catch { return false }
@@ -170,7 +174,7 @@ export async function deleteSession(sessionId) {
  */
 export async function fetchSessionDetail(sessionId) {
   try {
-    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}?user_id=${getUserId()}`)
+    const res = await fetch(`${BACKEND_URL}/sessions/${sessionId}`, { headers: authHeaders() })
     if (!res.ok) return null
     return await res.json()
   } catch {
@@ -184,7 +188,7 @@ export async function fetchSessionDetail(sessionId) {
  * @returns {Promise<object>}
  */
 export async function analyseCV() {
-  const res = await fetch(`${BACKEND_URL}/analyse-cv?user_id=${getUserId()}`, { method: 'POST' })
+  const res = await fetch(`${BACKEND_URL}/analyse-cv`, { method: 'POST', headers: authHeaders() })
   if (res.status === 403) throw new Error('pro_required')
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -200,7 +204,7 @@ export async function analyseCV() {
  */
 export async function fetchCVProfile() {
   try {
-    const res = await fetch(`${BACKEND_URL}/cv-profile?user_id=${getUserId()}`)
+    const res = await fetch(`${BACKEND_URL}/cv-profile`, { headers: authHeaders() })
     if (res.status === 404) return null
     if (!res.ok) return null
     return await res.json()
@@ -216,9 +220,8 @@ export async function fetchCVProfile() {
  */
 export async function uploadCVProfile(file) {
   const form = new FormData()
-  form.append('user_id', getUserId())
   form.append('file', file)
-  const res = await fetch(`${BACKEND_URL}/cv-profile`, { method: 'POST', body: form })
+  const res = await fetch(`${BACKEND_URL}/cv-profile`, { method: 'POST', headers: authHeaders(), body: form })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.detail || 'Upload failed')
