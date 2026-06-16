@@ -53,7 +53,10 @@ export function useTTS({ language = 'en-US' } = {}) {
       body: JSON.stringify({ text }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error(`TTS ${res.status}`)
+        if (!res.ok) {
+          console.error('[TTS] backend returned', res.status, res.url)
+          throw new Error(`TTS ${res.status}`)
+        }
         return res.blob()
       })
       .then((blob) => {
@@ -81,9 +84,9 @@ export function useTTS({ language = 'en-US' } = {}) {
           if (onEnd) onEnd()
         })
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[TTS] backend error, falling back to browser TTS:', err)
         if (genRef.current !== myGen) return
-        // ElevenLabs unavailable — fall back to browser speech synthesis
         browserSpeak(text, onEnd)
       })
   }, [])
