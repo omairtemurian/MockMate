@@ -551,7 +551,7 @@ async def text_to_speech(request: Request, current_user: dict = Depends(get_curr
     if not api_key:
         raise HTTPException(status_code=500, detail="ELEVENLABS_API_KEY not configured")
 
-    voice_id = "cQb5fnQsTT1X0GdpmHoo"
+    voice_id = "ErXwobaYiN019PkySvjV"  # Antoni
     async with httpx.AsyncClient(timeout=30) as http:
         resp = await http.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
