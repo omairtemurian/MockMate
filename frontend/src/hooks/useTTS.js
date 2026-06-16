@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
 
 const ELEVENLABS_KEY  = import.meta.env.VITE_ELEVENLABS_API_KEY || ''
-const ELEVENLABS_URL  = 'https://api.elevenlabs.io/v1/text-to-speech/onwK4e9ZLuTAKqWW03F9'
+const ELEVENLABS_URL  = 'https://api.elevenlabs.io/v1/text-to-speech/cQb5fnQsTT1X0GdpmHoo'
 
 export function useTTS({ language = 'en-US' } = {}) {
   const audioRef = useRef(null)
