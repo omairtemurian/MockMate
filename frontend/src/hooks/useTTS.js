@@ -2,12 +2,23 @@ import { useCallback, useRef } from 'react'
 import { BACKEND_URL } from '../utils/config'
 import { getStoredToken } from '../context/AuthContext'
 
+function browserSpeak(text, onEnd) {
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.rate = 1.0
+  utter.pitch = 1.0
+  utter.onend = () => { if (onEnd) onEnd() }
+  utter.onerror = () => { if (onEnd) onEnd() }
+  window.speechSynthesis.cancel()
+  window.speechSynthesis.speak(utter)
+}
+
 export function useTTS({ language = 'en-US' } = {}) {
   const audioRef = useRef(null)
   const genRef   = useRef(0)
 
   const cancel = useCallback(() => {
     genRef.current += 1
+    window.speechSynthesis.cancel()
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
@@ -19,6 +30,7 @@ export function useTTS({ language = 'en-US' } = {}) {
     genRef.current += 1
     const myGen = genRef.current
 
+    window.speechSynthesis.cancel()
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
@@ -71,7 +83,8 @@ export function useTTS({ language = 'en-US' } = {}) {
       })
       .catch(() => {
         if (genRef.current !== myGen) return
-        if (onEnd) onEnd()
+        // ElevenLabs unavailable — fall back to browser speech synthesis
+        browserSpeak(text, onEnd)
       })
   }, [])
 
