@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react'
-
-const ELEVENLABS_KEY  = import.meta.env.VITE_ELEVENLABS_API_KEY || ''
-const ELEVENLABS_URL  = 'https://api.elevenlabs.io/v1/text-to-speech/cQb5fnQsTT1X0GdpmHoo'
+import { BACKEND_URL } from '../utils/config'
+import { getStoredToken } from '../context/AuthContext'
 
 export function useTTS({ language = 'en-US' } = {}) {
   const audioRef = useRef(null)
@@ -31,20 +30,18 @@ export function useTTS({ language = 'en-US' } = {}) {
       return
     }
 
-    fetch(ELEVENLABS_URL, {
+    const token = getStoredToken()
+
+    fetch(`${BACKEND_URL}/tts`, {
       method: 'POST',
       headers: {
-        'xi-api-key': ELEVENLABS_KEY,
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
+      body: JSON.stringify({ text }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error(`ElevenLabs ${res.status}`)
+        if (!res.ok) throw new Error(`TTS ${res.status}`)
         return res.blob()
       })
       .then((blob) => {
